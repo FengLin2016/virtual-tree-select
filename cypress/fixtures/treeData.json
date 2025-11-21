@@ -1,0 +1,47 @@
+{
+  "smallData": [
+    {
+      "id": 1,
+      "name": "父节点1",
+      "children": [
+        {
+          "id": 11,
+          "name": "子节点1-1",
+          "children": [
+            { "id": 111, "name": "叶子节点1-1-1" },
+            { "id": 112, "name": "叶子节点1-1-2" }
+          ]
+        },
+        { "id": 12, "name": "子节点1-2" }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "父节点2",
+      "children": [
+        { "id": 21, "name": "子节点2-1" },
+        { "id": 22, "name": "子节点2-2" }
+      ]
+    },
+    { "id": 3, "name": "独立节点" }
+  ],
+  "largeData": [
+    {
+      "id": 1,
+      "name": "根节点1",
+      "children": []
+    },
+    {
+      "id": 2,
+      "name": "根节点2",
+      "children": []
+    }
+  ],
+  "emptyData": [],
+  "singleNode": [
+    {
+      "id": 1,
+      "name": "唯一节点"
+    }
+  ]
+}
