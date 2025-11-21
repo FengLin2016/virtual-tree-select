@@ -1,5 +1,5 @@
 <template>
-  <div class="virtualSelect">
+  <div class="virtualSelect" role="button" tabindex="0" aria-label="请选择">
     <el-popover
       v-model="isShowSelect"
       popper-class="treeSelect_v_popover"
@@ -41,7 +41,7 @@
             v-if="multiple"
             >全选</el-checkbox
           >
-          <el-input class="search" size="small" placeholder="请输入关键字搜索" v-model="searchText" />
+          <el-input class="search"  size="small" placeholder="请输入关键字搜索" v-model="searchText" />
           <div class="an">
             <el-button type="primary" icon="el-icon-search" size="small">全国检索</el-button>
           </div>
