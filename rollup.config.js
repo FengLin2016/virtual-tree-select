@@ -1,10 +1,10 @@
-import nodeResolve from 'rollup-plugin-node-resolve' 
+import nodeResolve from 'rollup-plugin-node-resolve'
 import postcss from 'rollup-plugin-postcss'
 import autoprefixer from 'autoprefixer'
 import vue from "rollup-plugin-vue"
 import babel from 'rollup-plugin-babel'
 import commonjs from "@rollup/plugin-commonjs"
-import scss from 'rollup-plugin-scss'
+import scss from 'rollup-plugin-sass'
 // import compiler from 'vue-template-compiler'
 
 // import image from "@rollup/plugin-image"
@@ -18,7 +18,7 @@ export default {
     //   vue: "Vue" // 告诉rollup全局变量Vue即是vue
     // }
   },{
-  	name: 'v-tree-scroll',
+  	name: 'v-tree-select',
     file: './dist/index.js',
     format: 'umd',
     // globals: {
@@ -41,7 +41,7 @@ export default {
     babel({
       exclude: "**/node_modules/**"
     }),
-    
+
     // image()
-  ] 
+  ]
 };

@@ -1,8 +1,8 @@
 import './reset.css';
-import VtreeSelect from '../packages/vtreeselect/index.vue';
+import virtualTreeSelect from '../packages/VTreeSelect/index.vue';
 
 const components = [
-  VtreeSelect
+  virtualTreeSelect
 ]
 
 const install = function(Vue, opts = {}) {
@@ -19,5 +19,5 @@ if (typeof window !== 'undefined' && window.Vue) {
 export default {
   version: '0.0.1',
   install,
-  VtreeSelect
+  virtualTreeSelect
 }

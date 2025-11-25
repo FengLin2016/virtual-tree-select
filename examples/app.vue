@@ -4,7 +4,6 @@
       ref="tree"
       v-model="input"
       :data="totalList"
-      multiple
       :defaultProps="{
         label: 'name',
         children: 'children',}"

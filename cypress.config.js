@@ -16,7 +16,7 @@ module.exports = defineConfig({
       //   },
       //   // 你可以在这里添加更多任务...
       // });
-      config = require('./cypress/plugins/index.js')
+      // config = require('./cypress/plugins/index.js')
       // // 示例 2: 修改配置 (比如动态设置环境变量)
       // config.env.API_URL = process.env.API_URL || "https://api.example.com";
 
