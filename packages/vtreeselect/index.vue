@@ -109,7 +109,7 @@ function treeToListDFS(
       collapse: !defaultExpandAll,
       checked: selectedId.includes(node[nodeKey]),
       hide: currentLevel != 0 ? !defaultExpandAll : false,
-      children: !!node[childrenKey],
+      children: !!(node[childrenKey] && node[childrenKey].length),
       idx: result.length,
       fatherId: pNodeId,
     }
@@ -205,6 +205,13 @@ export default {
       return this.listData.filter((item) => item.checked)
     },
     _listDataFilter() {
+      if(this.searchText) {
+        console.log(222)
+        console.time('filter')
+        let arr = this.listData.filter((item) => this.ids[item[this.nodeKey]])
+        console.timeEnd('filter')
+        return arr
+      }
       return this.listData.filter((item) => !item.hide)
     },
     // 实际行数
@@ -260,8 +267,8 @@ export default {
         // 如果当前节点层级大于等于当前操作节点层级，说明已经超出子节点范围
         if (nodeLevel <= currentLevel) break
         // 如果是搜索的 那就选父级后只是选赛选的子级
-        if(this.ids && this.ids.length) {
-          if(this.ids.includes(node[this.nodeKey])) {
+        if(this.ids) {
+          if(this.ids[node[this.nodeKey]]) {
             node.checked = currentNode.checked
           }
         } else {
@@ -272,12 +279,11 @@ export default {
       this._nodeClick(item)
     },
     _showFilter() {
-      this.ids.forEach(id => {
-        let item = treeMap[id]
-        if(item.children) {
-          this._changeStatus(item)
-        }
-      })
+      for (let index = 0; index < this.listData.length; index++) {
+        const item = this.listData[index];
+        item.collapse = !this.defaultExpandAll
+        item.hide = item.level != 0 ? !this.defaultExpandAll : false
+      }
     },
     // 点击展开收缩
     _changeStatus(item) {
@@ -328,7 +334,7 @@ export default {
   watch: {
     searchText(v) {
       if(v) {
-        this.ids = []
+        let ids = {}
         let arr = this.listData.filter((item) => item[this.defaultProps.label].indexOf(this.searchText) > -1)
         const that = this
         function deepFn(citem) {
@@ -336,20 +342,21 @@ export default {
           while(ditem) {
             ditem.collapse = false
             ditem.hide = false
-            that.ids.push(ditem[that.nodeKey])
+            ids[ditem[that.nodeKey]] = true
             ditem = treeMap[ditem['fatherId']]
           }
         }
         arr.forEach(item => {
           item.collapse = false
           item.hide = false
-          that.ids.push(item[that.nodeKey])
+          ids[item[that.nodeKey]] = true
           deepFn(item)
         })
+        this.ids = ids
       } else{
         // 将过滤出来的节点如果有子级就全部显示出来
         this._showFilter()
-        this.ids = []
+        this.ids = null
       }
       setTimeout(() => {
         this.$refs.list.scrollTop = 0
@@ -433,10 +440,10 @@ export default {
     height: 36px;
     line-height: 36px;
     display: flex;
-    padding: 0 0 0 10px;
+
     background: #fff;
     .search{
-      margin-left: 10px;
+      padding: 0 10px;
       font-size: 14px;
     }
     .an{
