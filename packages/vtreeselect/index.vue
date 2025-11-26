@@ -71,6 +71,7 @@
               <el-checkbox
                 v-if="multiple"
                 @change="_changeBox(item)"
+                :indeterminate="item.isIndeterminate"
                 v-model="item.checked"
                 >{{ item[defaultProps.label] }}</el-checkbox
               >
@@ -229,6 +230,10 @@ export default {
     this.$refs.list.removeEventListener('scroll', this._wheelFn)
   },
   methods: {
+    // 返回选中节点
+    getCurrentNode() {
+      return this.selectedArr
+    },
     handleClickOutside(e) {
       if (this.$refs.xz_content && !this.$refs.xz_content.contains(e.target)) {
         this.isShowSelect = false
@@ -258,25 +263,142 @@ export default {
     _changeBox(item) {
       const startIndex = item.idx
       const currentNode = this.listData[startIndex]
+      item.isIndeterminate = false
+
       // 如果不需要父子级联动，直接返回
-      if (this.checkStrictly) return
-      const currentLevel = currentNode.level
-      for (let index = startIndex + 1; index < this.listData.length; index++) {
-        const node = this.listData[index]
-        const nodeLevel = node.level
-        // 如果当前节点层级大于等于当前操作节点层级，说明已经超出子节点范围
-        if (nodeLevel <= currentLevel) break
-        // 如果是搜索的 那就选父级后只是选赛选的子级
-        if(this.ids) {
-          if(this.ids[node[this.nodeKey]]) {
-            node.checked = currentNode.checked
-          }
-        } else {
-          node.checked = currentNode.checked
+      if (this.checkStrictly) {
+        this._nodeClick(item)
+        return
+      }
+      console.time('changeBox')
+      // 1. 更新所有子节点状态（向下传播）
+      this._updateChildrenStatus(currentNode, currentNode.checked)
+
+      // 2. 更新所有父节点状态（向上传播）
+      this._updateParentStatus(item)
+      console.timeEnd('changeBox')
+      this._nodeClick(item)
+    },
+    /**
+     * 更新所有子节点状态（向下传播）
+     * @param {Object} parentNode 父节点
+     * @param {Boolean} checked 选中状态
+     */
+    _updateChildrenStatus(parentNode, checked) {
+      const startIndex = parentNode.idx
+      const parentLevel = parentNode.level
+
+      // 遍历所有子节点
+      for (let i = startIndex + 1; i < this.listData.length; i++) {
+        const node = this.listData[i]
+
+        // 如果层级小于等于父级层级，说明已经超出子节点范围
+        if (node.level <= parentLevel) break
+
+        // 搜索模式下只更新可见的子节点
+        if (this.searchText && this.ids && !this.ids[node[this.nodeKey]]) {
+          continue
         }
 
+        // 更新子节点状态
+        this.$set(node, 'checked', checked)
+        this.$set(node, 'isIndeterminate', false)
       }
-      this._nodeClick(item)
+    },
+
+    /**
+     * 更新所有父节点状态（向上传播）
+     * @param {Object} childNode 子节点
+     */
+    _updateParentStatus(childNode) {
+      let currentNode = childNode
+
+      // 逐级向上更新父节点
+      while (currentNode && currentNode.fatherId !== -1) {
+        const parentNode = treeMap[currentNode.fatherId]
+        if (!parentNode) break
+
+        // 计算父节点的状态
+        const parentStatus = this._calculateParentStatus(parentNode)
+
+        // 更新父节点状态
+        this.$set(parentNode, 'checked', parentStatus.checked)
+        this.$set(parentNode, 'isIndeterminate', parentStatus.isIndeterminate)
+
+        // 继续向上更新
+        currentNode = parentNode
+      }
+    },
+
+    /**
+     * 计算父节点应该的状态
+     * @param {Object} parentNode 父节点
+     * @returns {Object} { checked: boolean, isIndeterminate: boolean }
+     */
+    _calculateParentStatus(parentNode) {
+      const startIndex = parentNode.idx
+      const parentLevel = parentNode.level
+      let checkedCount = 0
+      let totalCount = 0
+      let hasIndeterminate = false
+
+      // 遍历所有直接子节点
+      for (let i = startIndex + 1; i < this.listData.length; i++) {
+        const node = this.listData[i]
+
+        // 如果层级小于等于父级层级，说明已经超出子节点范围
+        if (node.level <= parentLevel) break
+
+        // 只统计直接子节点（层级为父级+1）
+        if (node.level === parentLevel + 1) {
+          totalCount++
+
+          if (node.isIndeterminate) {
+            hasIndeterminate = true
+          } else if (node.checked) {
+            checkedCount++
+          }
+        }
+      }
+
+      // 根据统计结果确定父节点状态
+      if (totalCount === 0) {
+        // 没有子节点，保持原状态
+        return {
+          checked: parentNode.checked,
+          isIndeterminate: false
+        }
+      }
+
+      if (hasIndeterminate) {
+        // 有子节点处于半选状态，父节点也应该是半选
+        return {
+          checked: false,
+          isIndeterminate: true
+        }
+      }
+
+      if (checkedCount === 0) {
+        // 所有子节点都未选中
+        return {
+          checked: false,
+          isIndeterminate: false
+        }
+      }
+
+      if (checkedCount === totalCount) {
+        // 所有子节点都选中
+        return {
+          checked: true,
+          isIndeterminate: false
+        }
+      }
+
+      // 部分子节点选中
+      return {
+        checked: false,
+        isIndeterminate: true
+      }
     },
     _showFilter() {
       for (let index = 0; index < this.listData.length; index++) {
