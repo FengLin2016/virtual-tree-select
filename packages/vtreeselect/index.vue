@@ -38,11 +38,11 @@
         <div class="btn">
           <el-checkbox
             @change="_allChange"
-            v-if="multiple"
+            v-if="multiple && showAllSelection"
             >全选</el-checkbox
           >
           <el-input class="search"  size="small" placeholder="请输入关键字搜索" v-model="searchText" />
-          <div class="an">
+          <div class="an" v-if="remoteSearch">
             <el-button type="primary" icon="el-icon-search" size="small">全国检索</el-button>
           </div>
 
@@ -64,7 +64,7 @@
               <i
                 v-if="item.children"
                 @click.stop="_changeStatus(item)"
-                :class="item.expand ? 'hide' : ''"
+                :class="item.collapse ? 'hide' : ''"
                 class="el-icon-caret-bottom"
               ></i>
               <i v-else>&nbsp;</i>
@@ -106,9 +106,9 @@ function treeToListDFS(
     const nodeWithLevel = {
       ...node,
       level: currentLevel,
-      expand: defaultExpandAll,
+      collapse: !defaultExpandAll,
       checked: selectedId.includes(node[nodeKey]),
-      hide: currentLevel != 0 ? defaultExpandAll : false,
+      hide: currentLevel != 0 ? !defaultExpandAll : false,
       children: !!node[childrenKey],
       idx: result.length,
       fatherId: pNodeId,
@@ -173,7 +173,7 @@ export default {
     },
     defaultExpandAll: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     lineHeight: {
       type: Number,
@@ -190,6 +190,14 @@ export default {
       type: Boolean,
       default: false,
     },
+    showAllSelection: {
+      type: Boolean,
+      default: false,
+    },
+    remoteSearch: {
+      type: Boolean,
+      default: false,
+    },
   },
   created() {},
   computed: {
@@ -197,11 +205,7 @@ export default {
       return this.listData.filter((item) => item.checked)
     },
     _listDataFilter() {
-        if(this.searchText) {
-          return this.listData.filter((item) => this.ids.includes(item[this.nodeKey])&& !item.hide)
-        } else {
-          return this.listData.filter((item) => !item.hide)
-        }
+      return this.listData.filter((item) => !item.hide)
     },
     // 实际行数
     _totalLine() {
@@ -279,8 +283,8 @@ export default {
     _changeStatus(item) {
       const startIndex = item.idx
       const currentNode = this.listData[startIndex]
-      const isExpanding = !currentNode.expand
-      currentNode.expand = isExpanding
+      const isExpanding = !currentNode.collapse
+      currentNode.collapse = isExpanding
       // 优化遍历逻辑
       const currentLevel = currentNode.level
       for (let index = startIndex + 1; index < this.listData.length; index++) {
@@ -296,7 +300,7 @@ export default {
           }
         } else {
           // 收缩时隐藏所有子级
-          node.expand = isExpanding
+          node.collapse = isExpanding
           node.hide = isExpanding
         }
       }
@@ -330,14 +334,14 @@ export default {
         function deepFn(citem) {
           let ditem = treeMap[citem['fatherId']]
           while(ditem) {
-            ditem.expand = false
+            ditem.collapse = false
             ditem.hide = false
             that.ids.push(ditem[that.nodeKey])
             ditem = treeMap[ditem['fatherId']]
           }
         }
         arr.forEach(item => {
-          item.expand = false
+          item.collapse = false
           item.hide = false
           that.ids.push(item[that.nodeKey])
           deepFn(item)

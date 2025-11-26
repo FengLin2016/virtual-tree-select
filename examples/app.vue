@@ -4,10 +4,12 @@
       ref="tree"
       v-model="input"
       :data="totalList"
+      node-key="nodeid"
+      multiple
       :defaultProps="{
-        label: 'name',
-        children: 'children',}"
-      :filterNodeMethod="filterFn"
+        children: 'children',
+        label: 'nodetext',
+      }"
     />
     <div class="btn">
       <el-button @click="setCheck">设置选中</el-button>
@@ -30,12 +32,37 @@ export default {
   watch: {},
   created() {
     axios
-      .get("http://rap2api.taobao.org/app/mock/16107/api/tree")
+      .post(
+        "http://192.168.9.202:30001/dzjz-service/api/dzjzsystem/getDzjzTree",
+        { bmsah: "光明检刑诉受[2025]980102000005号", dwbm: "980102" }
+      )
       .then((res) => {
-        this.totalList = res.data.data;
+        this.totalList = this.getTreeData(
+          res.data.data,
+          "nodeid",
+          "pnodeid",
+          ""
+        );
       });
   },
   methods: {
+    getTreeData(data, id, pid, pvalue, defaultChild = []) {
+      if (defaultChild === "undefined") defaultChild = undefined;
+      const _data = {};
+      data.map((item) => {
+        if (!_data[item[pid]]) _data[item[pid]] = [];
+        _data[item[pid]].push(item);
+      });
+      const root = _data[pvalue];
+      function inner(temp = [], defaultChild) {
+        return temp.map((item) => {
+          item.children = _data[item[id]] || defaultChild;
+          if (_data[item[id]]) inner(_data[item[id]], defaultChild);
+          return item;
+        });
+      }
+      return inner(root, defaultChild);
+    },
     filterFn(item, value) {
       return item.name.indexOf(value) > -1;
     },
