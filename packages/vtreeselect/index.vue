@@ -1,5 +1,23 @@
+<!--
+  VTreeSelect - 虚拟滚动树形选择器组件
+
+  功能特性：
+  - 支持虚拟滚动，处理大量数据
+  - 支持单选/多选模式
+  - 支持搜索过滤
+  - 支持展开/收缩树形结构
+  - 支持全选/取消全选
+  - 支持父子级联动选择
+
+  性能优化：
+  - 使用 Set 数据结构优化查找性能
+  - 使用 for 循环替代数组过滤方法
+  - 虚拟滚动减少 DOM 节点数量
+-->
 <template>
+  <!-- 主容器，支持键盘无障碍访问 -->
   <div class="virtualSelect" role="button" tabindex="0" aria-label="请选择">
+    <!-- 弹出层容器 -->
     <el-popover
       v-model="isShowSelect"
       popper-class="treeSelect_v_popover"
@@ -7,52 +25,67 @@
       :width="popoverWidth"
       trigger="manual"
     >
+      <!-- 选择器触发区域 -->
       <div
         class="xz"
         ref="xz_content"
         slot="reference"
         @click="isShowSelect = !isShowSelect"
       >
-        <span v-if="multiple && selectedArr.length"
-          ><el-tag closable @close="closeTag(0)"
+        <!-- 多选模式：显示选中项标签 -->
+        <span v-if="multiple && selectedArr.length">
+          <!-- 第一个选中项标签，最多显示4个字符 -->
+          <el-tag closable @close="closeTag(0)"
             >{{ selectedArr[0][defaultProps.label].substr(0, 4) }}
             {{
               selectedArr[0][defaultProps.label].length > 4 ? '...' : ''
             }}</el-tag
           >
+          <!-- 剩余选中项数量标签 -->
           <el-tag v-show="selectedArr.length > 1"
             >+{{ selectedArr.length - 1 }}</el-tag
           >
         </span>
+        <!-- 单选模式：显示选中项文本，最多显示12个字符 -->
         <span class="single" v-else-if="selectedArr.length"
           >{{ selectedArr[0][defaultProps.label].substr(0, 12) }}
           {{
             selectedArr[0][defaultProps.label].length > 12 ? '...' : ''
           }}</span
         >
+        <!-- 默认占位文本 -->
         <span v-else>请选择</span>
+        <!-- 下拉箭头图标 -->
         <i class="el-icon-arrow-down"></i>
       </div>
 
+      <!-- 下拉列表容器 -->
       <div class="list-popover">
+        <!-- 操作栏：全选、搜索、远程检索 -->
         <div class="btn">
+          <!-- 全选复选框（仅多选模式显示） -->
           <el-checkbox
             @change="_allChange"
             v-if="multiple && showAllSelection"
             >全选</el-checkbox
           >
+          <!-- 搜索输入框 -->
           <el-input class="search"  size="small" placeholder="请输入关键字搜索" v-model="searchText" />
+          <!-- 远程检索按钮（可选功能） -->
           <div class="an" v-if="remoteSearch">
             <el-button type="primary" icon="el-icon-search" size="small">全国检索</el-button>
           </div>
-
         </div>
+
+        <!-- 虚拟滚动列表容器 -->
         <div class="list" ref="list">
+          <!-- 占位空间：用于虚拟滚动计算总高度 -->
           <div
             class="space"
             ref="space"
             :style="'height:' + _listDataFilter.length * lineHeight + 'px'"
           ></div>
+          <!-- 实际渲染的列表项 -->
           <ul ref="listUl" v-show="list.length">
             <li
               v-for="item in list"
@@ -61,13 +94,16 @@
               :class="item.checked && !multiple ? 'active-li' : ''"
               :key="item[nodeKey]"
             >
+              <!-- 展开/收缩图标（仅父节点显示） -->
               <i
                 v-if="item.children"
                 @click.stop="_changeStatus(item)"
                 :class="item.collapse ? 'hide' : ''"
                 class="el-icon-caret-bottom"
               ></i>
+              <!-- 子节点占位符 -->
               <i v-else>&nbsp;</i>
+              <!-- 多选复选框 -->
               <el-checkbox
                 v-if="multiple"
                 @change="_changeBox(item)"
@@ -75,23 +111,42 @@
                 v-model="item.checked"
                 >{{ item[defaultProps.label] }}</el-checkbox
               >
+              <!-- 单选文本 -->
               <div v-else>{{ item[defaultProps.label] }}</div>
             </li>
           </ul>
+          <!-- 无数据提示 -->
           <p v-if="!list.length">暂无数据</p>
-          </div>
+        </div>
       </div>
     </el-popover>
   </div>
 </template>
 
 <script>
-/* 深度优先遍历将树转为列表
- * @param {Array} tree 树形结构数组（根节点数组）
- * @param {string} childrenKey 子节点属性名，默认 'children'
- * @returns {Array} 扁平化后的列表
+/**
+ * 全局树形结构映射表
+ * 用于快速查找节点及其父级关系，避免重复遍历
+ * key: 节点ID, value: 节点对象（包含level、collapse等扩展属性）
  */
 const treeMap = {}
+
+/**
+ * 深度优先遍历将树形结构转换为扁平列表
+ *
+ * 功能说明：
+ * - 将嵌套的树形结构转换为扁平数组，便于虚拟滚动
+ * - 为每个节点添加层级、展开状态、选中状态等扩展属性
+ * - 建立父子节点关系映射，支持快速查找
+ *
+ * @param {Array} tree 树形结构数组（根节点数组）
+ * @param {boolean} defaultExpandAll 是否默认展开所有节点
+ * @param {Array} selectedId 已选中的节点ID数组
+ * @param {string} nodeKey 节点唯一标识字段名，默认 'id'
+ * @param {string} childrenKey 子节点属性名，默认 'children'
+ * @param {number} initialLevel 初始层级，默认 0
+ * @returns {Array} 扁平化后的列表，每个节点包含扩展属性
+ */
 function treeToListDFS(
   tree,
   defaultExpandAll,
@@ -102,21 +157,29 @@ function treeToListDFS(
 ) {
   const result = []
 
+  /**
+   * 递归遍历节点
+   * @param {Object} node 当前节点
+   * @param {number} currentLevel 当前层级
+   * @param {number|string} pNodeId 父节点ID，根节点为 -1
+   */
   const traverse = (node, currentLevel, pNodeId = -1) => {
-    // 复制节点并添加level字段（不修改原对象）
+    // 创建包含扩展属性的节点对象（不修改原对象）
     const nodeWithLevel = {
       ...node,
-      level: currentLevel,
-      collapse: !defaultExpandAll,
-      checked: selectedId.includes(node[nodeKey]),
-      hide: currentLevel != 0 ? !defaultExpandAll : false,
-      children: !!(node[childrenKey] && node[childrenKey].length),
-      idx: result.length,
-      fatherId: pNodeId,
+      level: currentLevel,                    // 节点层级，用于缩进显示
+      collapse: !defaultExpandAll,           // 是否收缩，默认收缩状态
+      checked: selectedId.includes(node[nodeKey]), // 是否选中
+      hide: currentLevel != 0 ? !defaultExpandAll : false, // 是否隐藏（非根节点在非全部展开时隐藏）
+      children: !!(node[childrenKey] && node[childrenKey].length), // 是否有子节点
+      idx: result.length,                    // 在扁平数组中的索引
+      fatherId: pNodeId,                     // 父节点ID
     }
-    // 存一份结构 后续父级
+
+    // 将节点存入全局映射表，便于后续快速查找父级关系
     treeMap[node[nodeKey]] = nodeWithLevel
     result.push(nodeWithLevel)
+
     // 若有子节点，递归遍历（子节点层级+1）
     if (node[childrenKey] && node[childrenKey].length) {
       node[childrenKey].forEach((child) => {
@@ -124,22 +187,28 @@ function treeToListDFS(
       })
     }
   }
-  // 根节点从初始层级开始遍历
+
+  // 从根节点开始遍历
   tree.forEach((root) => traverse(root, initialLevel))
   return result
 }
 
+// 虚拟滚动每页显示的行数
 const LINES = 20
+
 export default {
   name: 'vTreeSelect',
+
   data() {
     return {
-      popoverWidth: 150,
-      isShowSelect: false,
-      start: 0,
-      list: [],
-      listData: [],
-      searchText: '',
+      popoverWidth: 150,                    // 弹出层宽度
+      isShowSelect: false,                   // 是否显示下拉框
+      start: 0,                             // 虚拟滚动起始索引
+      list: [],                             // 当前渲染的列表数据
+      listData: [],                         // 完整的扁平化列表数据
+      searchText: '',                       // 搜索关键字
+      ids: [],                              // 搜索匹配的节点ID数组
+      idsSet: new Set(),                   // 优化：使用Set提高查找性能
     }
   },
   model: {
@@ -270,13 +339,11 @@ export default {
         this._nodeClick(item)
         return
       }
-      console.time('changeBox')
       // 1. 更新所有子节点状态（向下传播）
       this._updateChildrenStatus(currentNode, currentNode.checked)
 
       // 2. 更新所有父节点状态（向上传播）
       this._updateParentStatus(item)
-      console.timeEnd('changeBox')
       this._nodeClick(item)
     },
     /**
@@ -295,10 +362,10 @@ export default {
         // 如果层级小于等于父级层级，说明已经超出子节点范围
         if (node.level <= parentLevel) break
 
-        // 搜索模式下只更新可见的子节点
-        if (this.searchText && this.ids && !this.ids[node[this.nodeKey]]) {
-          continue
-        }
+        // // 搜索模式下只更新可见的子节点
+        // if (this.searchText && this.ids && !this.ids[node[this.nodeKey]]) {
+        //   continue
+        // }
 
         // 更新子节点状态
         this.$set(node, 'checked', checked)
