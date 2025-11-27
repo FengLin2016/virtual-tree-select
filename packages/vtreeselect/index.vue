@@ -291,12 +291,12 @@ export default {
   },
   mounted() {
     this.popoverWidth = this.$refs.xz_content.clientWidth + 10
-    this.$refs.list.addEventListener('scroll', this._wheelFn)
+    this.$refs.list && this.$refs.list.addEventListener('scroll', this._wheelFn)
     document.addEventListener('click', this.handleClickOutside)
   },
   destroyed() {
     document.removeEventListener('click', this.handleClickOutside)
-    this.$refs.list.removeEventListener('scroll', this._wheelFn)
+    this.$refs.list && this.$refs.list.removeEventListener('scroll', this._wheelFn)
   },
   methods: {
     // 返回选中节点
@@ -667,7 +667,7 @@ export default {
         flex: 1;
         .el-checkbox__input {
           position: relative;
-          top: 3px;
+          top: 2px;
         }
         .el-checkbox__label {
           text-overflow: ellipsis;
