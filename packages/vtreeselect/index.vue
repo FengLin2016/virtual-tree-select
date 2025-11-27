@@ -667,7 +667,7 @@ export default {
         flex: 1;
         .el-checkbox__input {
           position: relative;
-          top: 1px;
+          top: 3px;
         }
         .el-checkbox__label {
           text-overflow: ellipsis;
@@ -693,6 +693,7 @@ export default {
     .el-checkbox .el-checkbox__label {
       text-indent: 0;
       font-size: 16px;
+      color: #606266;
     }
     .el-checkbox__input.is-checked+.el-checkbox__label{
       color: #606266;
