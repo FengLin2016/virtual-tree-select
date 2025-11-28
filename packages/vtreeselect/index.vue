@@ -282,7 +282,7 @@ export default {
   computed: {
     selectedArr() {
       if (this.key) {
-        return this.listData.filter((item) => item.checked);
+        return this.listData.filter((item) => item.checked).map(item => item.data);
       }
     },
     _listDataFilter() {
