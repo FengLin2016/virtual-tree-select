@@ -1,7 +1,7 @@
 {
   "name": "virtual-tree-select",
   "description": "虚拟下拉树选择框",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "xyl <786549791@qq.com>",
   "license": "MIT",
   "main": "dist/index.js",
