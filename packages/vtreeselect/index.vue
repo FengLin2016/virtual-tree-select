@@ -38,7 +38,7 @@
           <el-tag closable @close="closeTag(0)"
             >{{ selectedArr[0][defaultProps.label].substr(0, 4) }}
             {{
-              selectedArr[0][defaultProps.label].length > 4 ? '...' : ''
+              selectedArr[0][defaultProps.label].length > 4 ? "..." : ""
             }}</el-tag
           >
           <!-- 剩余选中项数量标签 -->
@@ -50,7 +50,7 @@
         <span class="single" v-else-if="selectedArr.length"
           >{{ selectedArr[0][defaultProps.label].substr(0, 12) }}
           {{
-            selectedArr[0][defaultProps.label].length > 12 ? '...' : ''
+            selectedArr[0][defaultProps.label].length > 12 ? "..." : ""
           }}</span
         >
         <!-- 默认占位文本 -->
@@ -64,16 +64,21 @@
         <!-- 操作栏：全选、搜索、远程检索 -->
         <div class="btn">
           <!-- 全选复选框（仅多选模式显示） -->
-          <el-checkbox
-            @change="_allChange"
-            v-if="multiple && showAllSelection"
+          <el-checkbox @change="_allChange" v-if="multiple && showAllSelection"
             >全选</el-checkbox
           >
           <!-- 搜索输入框 -->
-          <el-input class="search"  size="small" placeholder="请输入关键字搜索" v-model="searchText" />
+          <el-input
+            class="search"
+            size="small"
+            placeholder="请输入关键字搜索"
+            v-model="searchText"
+          />
           <!-- 远程检索按钮（可选功能） -->
           <div class="an" v-if="remoteSearch">
-            <el-button type="primary" icon="el-icon-search" size="small">全国检索</el-button>
+            <el-button type="primary" icon="el-icon-search" size="small"
+              >全国检索</el-button
+            >
           </div>
         </div>
 
@@ -92,7 +97,7 @@
               @click.exact="_nodeClick(item)"
               :style="'padding-left:' + 1.2 * item.level + 'em'"
               :class="item.checked && !multiple ? 'active-li' : ''"
-              :key="item[nodeKey]"
+              :key="item[nodeKey] + key"
             >
               <!-- 展开/收缩图标（仅父节点显示） -->
               <i
@@ -108,7 +113,7 @@
                 v-if="multiple"
                 @change="_changeBox(item)"
                 :indeterminate="item.isIndeterminate"
-                v-model="item.checked"
+                :checked="item.checked"
                 >{{ item[defaultProps.label] }}</el-checkbox
               >
               <!-- 单选文本 -->
@@ -129,7 +134,7 @@
  * 用于快速查找节点及其父级关系，避免重复遍历
  * key: 节点ID, value: 节点对象（包含level、collapse等扩展属性）
  */
-const treeMap = {}
+const treeMap = {};
 
 /**
  * 深度优先遍历将树形结构转换为扁平列表
@@ -151,11 +156,12 @@ function treeToListDFS(
   tree,
   defaultExpandAll,
   selectedId,
-  nodeKey = 'id',
-  childrenKey = 'children',
+  nodeKey = "id",
+  nodeLable = "lable",
+  childrenKey = "children",
   initialLevel = 0
 ) {
-  const result = []
+  const result = [];
 
   /**
    * 递归遍历节点
@@ -165,81 +171,84 @@ function treeToListDFS(
    */
   const traverse = (node, currentLevel, pNodeId = -1) => {
     // 创建包含扩展属性的节点对象（不修改原对象）
-    const nodeWithLevel = {
-      ...node,
-      level: currentLevel,                    // 节点层级，用于缩进显示
-      collapse: !defaultExpandAll,           // 是否收缩，默认收缩状态
+    const nodeWithLevel = Object.seal({
+      data: node,
+      [nodeKey]: node[nodeKey],
+      [nodeLable]: node[nodeLable],
+      level: currentLevel, // 节点层级，用于缩进显示
+      collapse: !defaultExpandAll, // 是否收缩，默认收缩状态
+      isIndeterminate: false,
       checked: selectedId.includes(node[nodeKey]), // 是否选中
       hide: currentLevel != 0 ? !defaultExpandAll : false, // 是否隐藏（非根节点在非全部展开时隐藏）
       children: !!(node[childrenKey] && node[childrenKey].length), // 是否有子节点
-      idx: result.length,                    // 在扁平数组中的索引
-      fatherId: pNodeId,                     // 父节点ID
-    }
-
+      idx: result.length, // 在扁平数组中的索引
+      fatherId: pNodeId, // 父节点ID
+    });
     // 将节点存入全局映射表，便于后续快速查找父级关系
-    treeMap[node[nodeKey]] = nodeWithLevel
-    result.push(nodeWithLevel)
+    treeMap[node[nodeKey]] = nodeWithLevel;
+    result.push(nodeWithLevel);
 
     // 若有子节点，递归遍历（子节点层级+1）
     if (node[childrenKey] && node[childrenKey].length) {
       node[childrenKey].forEach((child) => {
-        traverse(child, currentLevel + 1, node[nodeKey])
-      })
+        traverse(child, currentLevel + 1, node[nodeKey]);
+      });
     }
-  }
+  };
 
   // 从根节点开始遍历
-  tree.forEach((root) => traverse(root, initialLevel))
-  return result
+  tree.forEach((root) => traverse(root, initialLevel));
+  return result;
 }
 
 // 虚拟滚动每页显示的行数
-const LINES = 20
+const LINES = 20;
 
 export default {
-  name: 'vTreeSelect',
+  name: "vTreeSelect",
 
   data() {
     return {
-      popoverWidth: 150,                    // 弹出层宽度
-      isShowSelect: false,                   // 是否显示下拉框
-      start: 0,                             // 虚拟滚动起始索引
-      list: [],                             // 当前渲染的列表数据
-      listData: [],                         // 完整的扁平化列表数据
-      searchText: '',                       // 搜索关键字
-      ids: [],                              // 搜索匹配的节点ID数组
-      idsSet: new Set(),                   // 优化：使用Set提高查找性能
-    }
+      popoverWidth: 150, // 弹出层宽度
+      isShowSelect: false, // 是否显示下拉框
+      start: 0,
+      filter: 'filter',
+      key: "key", //
+      list: [], // 当前渲染的列表数据
+      listData: [], // 完整的扁平化列表数据
+      searchText: "", // 搜索关键字
+      ids: {}, // 搜索匹配的节点ID数组
+    };
   },
   model: {
-    prop: 'selectedId',
-    event: 'change',
+    prop: "selectedId",
+    event: "change",
   },
   props: {
     selectedId: {
       type: [String, Array],
       default() {
-        return ''
+        return "";
       },
     },
     data: {
       type: Array,
       default() {
-        return []
+        return [];
       },
     },
     defaultProps: {
       type: Object,
       default() {
         return {
-          label: 'label',
-          children: 'children',
-        }
+          label: "label",
+          children: "children",
+        };
       },
     },
     nodeKey: {
       type: String,
-      default: 'id',
+      default: "id",
     },
     defaultExpandAll: {
       type: Boolean,
@@ -253,7 +262,7 @@ export default {
     multiple: {
       type: Boolean,
       default() {
-        return false
+        return false;
       },
     },
     checkStrictly: {
@@ -272,79 +281,91 @@ export default {
   created() {},
   computed: {
     selectedArr() {
-      return this.listData.filter((item) => item.checked)
+      if (this.key) {
+        return this.listData.filter((item) => item.checked);
+      }
     },
     _listDataFilter() {
-      if(this.searchText) {
-        console.log(222)
-        console.time('filter')
-        let arr = this.listData.filter((item) => this.ids[item[this.nodeKey]])
-        console.timeEnd('filter')
-        return arr
+      if (this.filter) {
+        if (this.searchText) {
+          let arr = this.listData.filter(
+            (item) => this.ids[item[this.nodeKey]]
+          );
+          return arr;
+        }
+        return this.listData.filter((item) => !item.hide);
       }
-      return this.listData.filter((item) => !item.hide)
     },
     // 实际行数
     _totalLine() {
-      return this.listData.length
+      return this.listData.length;
     },
   },
   mounted() {
-    this.popoverWidth = this.$refs.xz_content.clientWidth + 10
-    this.$refs.list && this.$refs.list.addEventListener('scroll', this._wheelFn)
-    document.addEventListener('click', this.handleClickOutside)
+    this.popoverWidth = this.$refs.xz_content.clientWidth + 10;
+    this.$refs.list &&
+      this.$refs.list.addEventListener("scroll", this._wheelFn);
+    document.addEventListener("click", this.handleClickOutside);
   },
   destroyed() {
-    document.removeEventListener('click', this.handleClickOutside)
-    this.$refs.list && this.$refs.list.removeEventListener('scroll', this._wheelFn)
+    document.removeEventListener("click", this.handleClickOutside);
+    this.$refs.list &&
+      this.$refs.list.removeEventListener("scroll", this._wheelFn);
   },
   methods: {
     // 返回选中节点
     getCurrentNode() {
-      return this.selectedArr
+      return this.selectedArr;
     },
     handleClickOutside(e) {
       if (this.$refs.xz_content && !this.$refs.xz_content.contains(e.target)) {
-        this.isShowSelect = false
+        this.isShowSelect = false;
       }
     },
     closeTag(idx) {
-      this.selectedArr[idx].checked = false
+      this.selectedArr[idx].checked = false;
     },
     _allChange(value) {
       this.listData.forEach((item) => {
-        item.checked = value
-      })
-      this.$emit('change', this.selectedArr.map(item => item[this.nodeKey]))
+        item.checked = value;
+      });
+      this.$emit(
+        "change",
+        this.selectedArr.map((item) => item[this.nodeKey])
+      );
     },
     _nodeClick(data) {
       if (this.multiple) {
-        this.$emit('change', this.selectedArr.map(item => item[this.nodeKey]))
+        this.$emit(
+          "change",
+          this.selectedArr.map((item) => item[this.nodeKey])
+        );
       } else {
-        if(this.selectedArr[0]) {
-          this.selectedArr[0].checked = false
+        if (this.selectedArr[0]) {
+          this.selectedArr[0].checked = false;
         }
-        data.checked = true
-        this.$emit('change', this.selectedArr[0][this.nodeKey])
-        this.isShowSelect = false
+        data.checked = true;
+        this.$emit("change", this.selectedArr[0][this.nodeKey]);
+        this.isShowSelect = false;
       }
     },
     _changeBox(item) {
-      const startIndex = item.idx
-      const currentNode = this.listData[startIndex]
-      item.isIndeterminate = false
-
+      const startIndex = item.idx;
+      const currentNode = this.listData[startIndex];
+      item.isIndeterminate = false;
+      item.checked = !item.checked;
       // 如果不需要父子级联动，直接返回
       if (this.checkStrictly) {
-        this._nodeClick(item)
-        return
+        this._nodeClick(item);
+        return;
       }
       // 1. 更新所有子节点状态（向下传播）
-      this._updateChildrenStatus(currentNode, currentNode.checked)
+      this._updateChildrenStatus(currentNode, currentNode.checked);
 
       // 2. 更新所有父节点状态（向上传播）
-      this._updateParentStatus(item)
-      this._nodeClick(item)
+      this._updateParentStatus(item);
+      this._nodeClick(item);
+      this.key = Math.random();
     },
     /**
      * 更新所有子节点状态（向下传播）
@@ -352,15 +373,15 @@ export default {
      * @param {Boolean} checked 选中状态
      */
     _updateChildrenStatus(parentNode, checked) {
-      const startIndex = parentNode.idx
-      const parentLevel = parentNode.level
+      const startIndex = parentNode.idx;
+      const parentLevel = parentNode.level;
 
       // 遍历所有子节点
       for (let i = startIndex + 1; i < this.listData.length; i++) {
-        const node = this.listData[i]
+        const node = this.listData[i];
 
         // 如果层级小于等于父级层级，说明已经超出子节点范围
-        if (node.level <= parentLevel) break
+        if (node.level <= parentLevel) break;
 
         // // 搜索模式下只更新可见的子节点
         // if (this.searchText && this.ids && !this.ids[node[this.nodeKey]]) {
@@ -368,8 +389,8 @@ export default {
         // }
 
         // 更新子节点状态
-        this.$set(node, 'checked', checked)
-        this.$set(node, 'isIndeterminate', false)
+        node.checked = checked;
+        node.isIndeterminate = false;
       }
     },
 
@@ -378,22 +399,22 @@ export default {
      * @param {Object} childNode 子节点
      */
     _updateParentStatus(childNode) {
-      let currentNode = childNode
+      let currentNode = childNode;
 
       // 逐级向上更新父节点
       while (currentNode && currentNode.fatherId !== -1) {
-        const parentNode = treeMap[currentNode.fatherId]
-        if (!parentNode) break
+        const parentNode = treeMap[currentNode.fatherId];
+        if (!parentNode) break;
 
         // 计算父节点的状态
-        const parentStatus = this._calculateParentStatus(parentNode)
+        const parentStatus = this._calculateParentStatus(parentNode);
 
         // 更新父节点状态
-        this.$set(parentNode, 'checked', parentStatus.checked)
-        this.$set(parentNode, 'isIndeterminate', parentStatus.isIndeterminate)
+        parentNode.checked = parentStatus.checked
+        parentNode.isIndeterminate = parentStatus.isIndeterminate
 
         // 继续向上更新
-        currentNode = parentNode
+        currentNode = parentNode;
       }
     },
 
@@ -403,27 +424,27 @@ export default {
      * @returns {Object} { checked: boolean, isIndeterminate: boolean }
      */
     _calculateParentStatus(parentNode) {
-      const startIndex = parentNode.idx
-      const parentLevel = parentNode.level
-      let checkedCount = 0
-      let totalCount = 0
-      let hasIndeterminate = false
+      const startIndex = parentNode.idx;
+      const parentLevel = parentNode.level;
+      let checkedCount = 0;
+      let totalCount = 0;
+      let hasIndeterminate = false;
 
       // 遍历所有直接子节点
       for (let i = startIndex + 1; i < this.listData.length; i++) {
-        const node = this.listData[i]
+        const node = this.listData[i];
 
         // 如果层级小于等于父级层级，说明已经超出子节点范围
-        if (node.level <= parentLevel) break
+        if (node.level <= parentLevel) break;
 
         // 只统计直接子节点（层级为父级+1）
         if (node.level === parentLevel + 1) {
-          totalCount++
+          totalCount++;
 
           if (node.isIndeterminate) {
-            hasIndeterminate = true
+            hasIndeterminate = true;
           } else if (node.checked) {
-            checkedCount++
+            checkedCount++;
           }
         }
       }
@@ -433,128 +454,131 @@ export default {
         // 没有子节点，保持原状态
         return {
           checked: parentNode.checked,
-          isIndeterminate: false
-        }
+          isIndeterminate: false,
+        };
       }
 
       if (hasIndeterminate) {
         // 有子节点处于半选状态，父节点也应该是半选
         return {
           checked: false,
-          isIndeterminate: true
-        }
+          isIndeterminate: true,
+        };
       }
 
       if (checkedCount === 0) {
         // 所有子节点都未选中
         return {
           checked: false,
-          isIndeterminate: false
-        }
+          isIndeterminate: false,
+        };
       }
 
       if (checkedCount === totalCount) {
         // 所有子节点都选中
         return {
           checked: true,
-          isIndeterminate: false
-        }
+          isIndeterminate: false,
+        };
       }
 
       // 部分子节点选中
       return {
         checked: false,
-        isIndeterminate: true
-      }
+        isIndeterminate: true,
+      };
     },
     _showFilter() {
       for (let index = 0; index < this.listData.length; index++) {
         const item = this.listData[index];
-        item.collapse = !this.defaultExpandAll
-        item.hide = item.level != 0 ? !this.defaultExpandAll : false
+        item.collapse = !this.defaultExpandAll;
+        item.hide = item.level != 0 ? !this.defaultExpandAll : false;
       }
     },
     // 点击展开收缩
     _changeStatus(item) {
-      const startIndex = item.idx
-      const currentNode = this.listData[startIndex]
-      const isExpanding = !currentNode.collapse
-      currentNode.collapse = isExpanding
+      const startIndex = item.idx;
+      const currentNode = this.listData[startIndex];
+      const isExpanding = !currentNode.collapse;
+      currentNode.collapse = isExpanding;
       // 优化遍历逻辑
-      const currentLevel = currentNode.level
+      const currentLevel = currentNode.level;
       for (let index = startIndex + 1; index < this.listData.length; index++) {
-        const node = this.listData[index]
-        const nodeLevel = node.level
+        const node = this.listData[index];
+        const nodeLevel = node.level;
         // 如果当前节点层级大于等于当前操作节点层级，说明已经超出子节点范围
-        if (nodeLevel <= currentLevel) break
+        if (nodeLevel <= currentLevel) break;
         // 展开时只显示直接子级，收缩时隐藏所有子级
         if (!isExpanding) {
           // 只展开直接子级
           if (nodeLevel === currentLevel + 1) {
-            node.hide = isExpanding
+            node.hide = isExpanding;
           }
         } else {
           // 收缩时隐藏所有子级
-          node.collapse = isExpanding
-          node.hide = isExpanding
+          node.collapse = isExpanding;
+          node.hide = isExpanding;
         }
       }
-      this._wheelFn()
+      this._wheelFn();
     },
     // 滚动监听
     _wheelFn() {
-      const top = this.$refs.list ? this.$refs.list.scrollTop : 0
-      const arr = this._listDataFilter
+      const top = this.$refs.list ? this.$refs.list.scrollTop : 0;
+      this.filter = Math.random();
+      const arr = this._listDataFilter;
       // 如果滚动条已经滚动到最底部，则显示最后
-      this.start = top ? Math.ceil(top / this.lineHeight) : 0
+      this.start = top ? Math.ceil(top / this.lineHeight) : 0;
       // 从0开始
       if (this.start < 0) {
-        this.start = 0
+        this.start = 0;
       }
       if (this.$refs.listUl) {
-        this.$refs.listUl.style.top = top + 'px'
+        this.$refs.listUl.style.top = top + "px";
       }
       // 末行不足一行 如果上次显示的就已经是所有了 则不更新
       if (arr.length - this.start >= 0) {
-        this.list = arr.slice(this.start, this.start + LINES)
+        this.list = arr.slice(this.start, this.start + LINES);
       }
     },
   },
   watch: {
     searchText(v) {
-      if(v) {
-        let ids = {}
-        let arr = this.listData.filter((item) => item[this.defaultProps.label].indexOf(this.searchText) > -1)
-        const that = this
+      if (v) {
+        let ids = {};
+        let arr = this.listData.filter(
+          (item) => item[this.defaultProps.label].indexOf(this.searchText) > -1
+        );
+        const that = this;
         function deepFn(citem) {
-          let ditem = treeMap[citem['fatherId']]
-          while(ditem) {
-            ditem.collapse = false
-            ditem.hide = false
-            ids[ditem[that.nodeKey]] = true
-            ditem = treeMap[ditem['fatherId']]
+          let ditem = treeMap[citem["fatherId"]];
+          while (ditem) {
+            ditem.collapse = false;
+            ditem.hide = false;
+            ids[ditem[that.nodeKey]] = true;
+            ditem = treeMap[ditem["fatherId"]];
           }
         }
-        arr.forEach(item => {
-          item.collapse = false
-          item.hide = false
-          ids[item[that.nodeKey]] = true
-          deepFn(item)
-        })
-        this.ids = ids
-      } else{
+        arr.forEach((item) => {
+          item.collapse = false;
+          item.hide = false;
+          ids[item[that.nodeKey]] = true;
+          deepFn(item);
+        });
+        this.ids = ids;
+      } else {
         // 将过滤出来的节点如果有子级就全部显示出来
-        this._showFilter()
-        this.ids = null
+        this._showFilter();
+        this.ids = null;
       }
       setTimeout(() => {
-        this.$refs.list.scrollTop = 0
-        this._wheelFn()
-      })
+        this.$refs.list.scrollTop = 0;
+        this._wheelFn();
+      });
     },
     isShowSelect(v) {
       if (v) {
-        this._wheelFn()
+        this._wheelFn();
       }
     },
     data: {
@@ -564,15 +588,16 @@ export default {
             v,
             this.defaultExpandAll,
             this.multiple ? this.selectedId : [this.selectedId],
-            this.nodeKey
-          )
-          this._wheelFn()
+            this.nodeKey,
+            this.defaultProps.label
+          );
+          this._wheelFn();
         }
       },
       immediate: true,
     },
   },
-}
+};
 </script>
 
 <style scoped lang="scss">
@@ -620,22 +645,22 @@ export default {
   display: flex;
   flex-direction: column;
   position: relative;
-  .list{
-     overflow: auto;
-     flex: 1;
-     position: relative;
+  .list {
+    overflow: auto;
+    flex: 1;
+    position: relative;
   }
-  .btn{
+  .btn {
     height: 36px;
     line-height: 36px;
     display: flex;
 
     background: #fff;
-    .search{
+    .search {
       padding: 0 10px;
       font-size: 14px;
     }
-    .an{
+    .an {
       margin-left: 10px;
       position: relative;
       top: -1px;
@@ -667,7 +692,8 @@ export default {
         flex: 1;
         .el-checkbox__input {
           position: relative;
-          top: 2px;
+          top: 1px;
+          margin: 0;
         }
         .el-checkbox__label {
           text-overflow: ellipsis;
@@ -680,7 +706,7 @@ export default {
         width: 14px;
         color: #a9c4df;
         margin-right: 5px;
-        margin-top: 3px;
+        margin-top: 2px;
         &.el-icon-caret-bottom {
           cursor: pointer;
         }
@@ -695,12 +721,12 @@ export default {
       font-size: 16px;
       color: #606266;
     }
-    .el-checkbox__input.is-checked+.el-checkbox__label{
+    .el-checkbox__input.is-checked + .el-checkbox__label {
       color: #606266;
     }
   }
 }
-.treeSelect_v_popover[x-placement^='bottom'] {
+.treeSelect_v_popover[x-placement^="bottom"] {
   margin-top: 4px;
   margin-left: -10px;
   padding: 5px;

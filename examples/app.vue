@@ -37,12 +37,13 @@ export default {
         { bmsah: "光明检刑诉受[2025]980102000005号", dwbm: "980102" }
       )
       .then((res) => {
-        this.totalList = this.getTreeData(
+        this.totalList = Object.freeze(this.getTreeData(
           res.data.data,
           "nodeid",
           "pnodeid",
           ""
-        );
+        ));
+
       });
   },
   methods: {
