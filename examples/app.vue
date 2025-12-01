@@ -21,6 +21,7 @@
 </template>
 
 <script>
+import './reset.css';
 import axios from "axios";
 export default {
   data() {

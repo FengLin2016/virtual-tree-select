@@ -1,4 +1,3 @@
-import './reset.css';
 import virtualTreeSelect from '../packages/VTreeSelect/index.vue';
 
 const components = [
