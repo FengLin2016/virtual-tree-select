@@ -1,7 +1,7 @@
 {
   "name": "virtual-tree-select",
   "description": "虚拟下拉树选择框",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "xyl <786549791@qq.com>",
   "license": "MIT",
   "main": "dist/index.js",
@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server --open --hot",
     "build": "cross-env NODE_ENV=production rollup -c",
+    "chore": "npm run build && npm publish",
     "test:e2e": "cypress open",
     "test:e2e:headless": "cypress run",
     "test:e2e:chrome": "cypress run --browser chrome",
