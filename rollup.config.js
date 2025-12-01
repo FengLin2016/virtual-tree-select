@@ -5,6 +5,7 @@ import vue from "rollup-plugin-vue"
 import babel from 'rollup-plugin-babel'
 import commonjs from "@rollup/plugin-commonjs"
 import scss from 'rollup-plugin-sass'
+import json from '@rollup/plugin-json';
 // import compiler from 'vue-template-compiler'
 
 // import image from "@rollup/plugin-image"
@@ -28,6 +29,7 @@ export default {
   plugins: [
     nodeResolve(),
     commonjs(),
+    json(),
     vue({
       css: true,
       compileTemplate: true,

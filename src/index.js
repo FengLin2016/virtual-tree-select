@@ -1,5 +1,5 @@
 import virtualTreeSelect from '../packages/VTreeSelect/index.vue';
-
+const packageInfo = require('../package.json');
 const components = [
   virtualTreeSelect
 ]
@@ -16,7 +16,7 @@ if (typeof window !== 'undefined' && window.Vue) {
 }
 
 export default {
-  version: '0.0.5',
+  version: packageInfo.version,
   install,
   virtualTreeSelect
 }
