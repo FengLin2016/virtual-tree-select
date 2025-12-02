@@ -20,3 +20,7 @@ export default {
   install,
   virtualTreeSelect
 }
+
+export {
+  virtualTreeSelect
+}

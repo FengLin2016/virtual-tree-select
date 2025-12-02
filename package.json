@@ -1,7 +1,7 @@
 {
   "name": "virtual-tree-select",
   "description": "虚拟下拉树选择框",
-  "version": "0.0.5",
+  "version": "1.0.0",
   "author": "xyl <786549791@qq.com>",
   "license": "MIT",
   "main": "dist/index.js",
@@ -59,10 +59,11 @@
     "vue-loader": "^13.7.3",
     "vue-template-compiler": "^2.6.12",
     "webpack": "^3.6.0",
+    "element-ui": "^2.13.2",
     "webpack-dev-server": "^2.9.1"
   },
   "dependencies": {
-    "element-ui": "^2.13.2",
+    "v-tree-scroll": "^1.0.1",
     "vue": "^2.6.12"
   },
   "browserslist": [

@@ -11,9 +11,9 @@
 npm i virtual-tree-select -S
 
 # 引入组件
-import  vSelectTree  from 'virtual-tree-select'
+import  virtualTreeSelect  from 'virtual-tree-select'
 
-Vue.use(vSelectTree)
+Vue.use(virtualTreeSelect)
 
 # 使用
 <virtual-tree-select  :data="totalList" />
@@ -26,11 +26,13 @@ Vue.use(vSelectTree)
 | ------------ | ------ | ------ | -------------------------------------------------------------------------------------- |
 | data         | Array  | []     | 数据源                                                                                   |
 | nodeKey      | String | id     | 每个树节点用来作为唯一标识的属性，整棵树应该是唯一的                                 |
-| defaultProps      | Object | {label: 'label',children: 'children'} | 树节点配置
+| props      | Object | {label: 'label',children: 'children'} | 树节点配置
 | defaultExpandAll      | Boolean | false     | 全部是否展开
 | multiple      | Boolean | false     | 是否多选
 | checkStrictly      | Boolean | false     | 是否不级联
-
+| remoteSearch      | Boolean | false     | 是否远程搜索
+| remoteSearchText      | string | '请输入关键字搜索'     | 远程搜索提示文字
+| clearable      | Boolean | true     | 是否可以清空
 
 
 

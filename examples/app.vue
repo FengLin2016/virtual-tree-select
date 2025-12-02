@@ -5,8 +5,9 @@
       v-model="input"
       :data="totalList"
       node-key="nodeid"
-      multiple
-      :defaultProps="{
+      showAllSelection
+      :multiple="true"
+      :props="{
         children: 'children',
         label: 'nodetext',
       }"
