@@ -90,7 +90,7 @@
 </template>
 
 <script>
-import { virtualTree } from "v-tree-scroll";
+import { virtualTree } from "virtual-tree-scroll";
 export default {
   name: "virtualTreeSelect",
   components: {

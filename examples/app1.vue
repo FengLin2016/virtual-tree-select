@@ -9,7 +9,7 @@
       @queryGxdw="queryGxdw"
       node-key="dm"
       showAllSelection
-      :multiple="true"
+      :multiple="false"
       :props="{
         children: 'children',
         label: 'mc',

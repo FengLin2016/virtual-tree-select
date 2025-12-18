@@ -127,7 +127,7 @@
 
 <script>
 // 导入虚拟滚动树形组件
-import { virtualTree } from "v-tree-scroll";
+import { virtualTree } from "virtual-tree-scroll";
 
 export default {
   name: "gxTreeSelect",
