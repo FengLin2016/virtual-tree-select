@@ -92,7 +92,7 @@
 <script>
 import { virtualTree } from "v-tree-scroll";
 export default {
-  name: "vTreeSelect",
+  name: "virtualTreeSelect",
   components: {
     virtualTree
   },

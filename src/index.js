@@ -1,7 +1,9 @@
-import virtualTreeSelect from '../packages/VTreeSelect/index.vue';
+import virtualTreeSelect from '../packages/virtualTreeSelect/index.vue';
+import gxTreeSelect from '../packages/gxTreeSelect/index.vue';
 const packageInfo = require('../package.json');
 const components = [
-  virtualTreeSelect
+  virtualTreeSelect,
+  gxTreeSelect
 ]
 
 const install = function(Vue, opts = {}) {
@@ -17,10 +19,10 @@ if (typeof window !== 'undefined' && window.Vue) {
 
 export default {
   version: packageInfo.version,
-  install,
-  virtualTreeSelect
+  install
 }
 
 export {
-  virtualTreeSelect
+  virtualTreeSelect,
+  gxTreeSelect
 }
