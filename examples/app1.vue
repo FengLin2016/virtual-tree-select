@@ -9,7 +9,7 @@
       @queryGxdw="queryGxdw"
       node-key="dm"
       showAllSelection
-      :multiple="false"
+      :multiple="true"
       :props="{
         children: 'children',
         label: 'mc',
@@ -36,12 +36,16 @@ export default {
   },
   watch: {},
   created() {
-    this.queryGxdw()
+
     this.$nextTick(() => {
       // this.$refs.tree.setSelectArr([
       //   {dm: '1189000000003', mc: '汉东'}
       // ])
     })
+
+    setTimeout(() => {
+      this.queryGxdw()
+    }, 3000)
   },
   methods: {
     queryGxdw(dwbm = "770000") {

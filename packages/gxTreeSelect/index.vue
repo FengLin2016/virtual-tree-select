@@ -79,6 +79,14 @@
         ></i>
         <!-- 下拉箭头图标 -->
         <i class="el-icon-arrow-down"></i>
+        <!-- 为了让组件支持element 表单规则验证隐藏一个输入框 -->
+        <el-input
+          class="search"
+          size="small"
+          style="display: none"
+          :value="selectedArr"
+          placeholder="请选择"
+        />
       </div>
           <!-- 下拉列表容器：左右分栏布局 -->
       <div class="list-popover-ay" v-loading="loading">
@@ -107,16 +115,17 @@
             <el-input
               class="search"
               size="small"
-              placeholder="请输入关键字搜索"
               v-model="searchText"
+              :validateEvent="false"
+              placeholder="请输入关键字搜索"
             />
           </div>
           <!-- 虚拟滚动树形组件 -->
           <virtualTree
             ref="virtualTree"
-            v-if="isShowSelect"
             v-model="selectedIdsTree"
             :data="gxdwxxList"
+            @change="selectedIdsTreeChange"
             v-bind="$attrs"
           />
         </div>
@@ -149,7 +158,7 @@ export default {
   // v-model 配置
   model: {
     prop: "selectedId",          // 双向绑定的属性名
-    event: "change",             // 触发的事件名
+    event: "changeModel",             // 触发的事件名
   },
 
   // 组件属性定义
@@ -193,7 +202,7 @@ export default {
   // 组件创建时初始化
   created() {
     // 设置默认选中的省份代码
-    this.selectDwbm = this.dwbm
+    this.selectDwbm = this.dwbm.substring(0, 2) + '0000'
   },
 
   // 计算属性
@@ -307,9 +316,9 @@ export default {
     selectProvince(dwbm) {
       this.loading = true
       this.selectDwbm = dwbm
-
+      this.selectBsd = true
       // 切换前先清空右侧关系单位组件的数据
-      this.$refs.virtualTree.clear()
+      // this.$refs.virtualTree.clear()
       // 重新设置当前省份的选中ID
       this._initSelectIds()
       // 触发查询关系单位事件，让父组件加载对应省份的数据
@@ -364,22 +373,28 @@ export default {
       this.allChecked = false;
       this.$refs.virtualTree.allChange(false);
     },
-  },
-  // 数据监听器
-  watch: {
-    /**
-     * 监听当前省份选中ID变化
-     * @param {String|Array} v - 新的选中ID集合
-     */
-    selectedIdsTree(v) {
+
+    selectedIdsTreeChange(v) {
       // 单选
       if(!this.$attrs['multiple']) {
         this.selectedMap = {}
+        this.isShowSelect = false
       }
       // 将虚拟树组件的选中数组更新到当前省份的映射中 //加载中的时候 不设置
       if(v && this.$refs.virtualTree && !this.loading) {
         this.$set(this.selectedMap, this.selectDwbm, this.$refs.virtualTree.selectedArr)
       }
+    }
+  },
+  // 数据监听器
+  watch: {
+    /**
+     * 监听搜索关键字变化
+     * @param {String} v - 搜索关键字
+     */
+    searchText (v) {
+      // 调用虚拟树组件的过滤方法进行搜索
+      this.$refs.virtualTree.filter(v);
     },
 
     /**
@@ -387,25 +402,14 @@ export default {
      * 当selectedMap更新时会触发此监听器
      */
     selectedArr(v, old) {
-      // 向外触发change事件，传递所有选中节点的ID数组
+      // 向外触发changeModel事件，传递所有选中节点的ID数组
       if(!this.$attrs['multiple']) {
-        this.$emit("change", this.selectedArr.map(item => item[this.$attrs['node-key']])[0]);
-        // 选了才关闭
-        if(v.length) {
-          this.isShowSelect = false
-        }
+        this.$emit("changeModel", this.selectedArr.map(item => item[this.$attrs['node-key']])[0]);
+        this.$emit("change", this.selectedArr[0][this.$attrs['node-key']], this.selectedArr[0].data);
       } else {
-        this.$emit("change", this.selectedArr.map(item => item[this.$attrs['node-key']]));
+        this.$emit("changeModel", this.selectedArr.map(item => item[this.$attrs['node-key']]));
+        this.$emit("change", this.selectedArr.map(item => item[this.$attrs['node-key']]), this.selectedArr.map(item => item.data));
       }
-    },
-
-    /**
-     * 监听搜索关键字变化
-     * @param {String} v - 搜索关键字
-     */
-    searchText(v) {
-      // 调用虚拟树组件的过滤方法进行搜索
-      this.$refs.virtualTree.filter(v);
     },
   },
 };
@@ -420,7 +424,7 @@ export default {
   height: 34px;                     /* 固定高度 */
   line-height: 34px;                /* 行高，垂直居中 */
   border-radius: 3px;               /* 圆角 */
-  padding: 0 10px;                  /* 左右内边距 */
+  padding: 0 5px 0 10px;                  /* 左右内边距 */
   outline: none;                     /* 去除焦点轮廓 */
   cursor: pointer;                   /* 鼠标指针 */
   user-select: none;                 /* 禁止文本选择 */
@@ -455,7 +459,8 @@ export default {
     i {
       width: 20px;                  /* 图标宽度 */
       line-height: 34px;             /* 图标行高 */
-
+      color: #6fabef;
+      font-size: 14px;
       /* 清空按钮默认隐藏 */
       &.el-icon-circle-close {
         display: none;
@@ -526,6 +531,8 @@ export default {
       i{
         align-content: center;     /* 垂直居中 */
         padding-right: 5px;        /* 右内边距 */
+        line-height: 35px;
+
       }
 
       /* 省份名称样式 */
@@ -635,7 +642,7 @@ export default {
         color: #a9c4df;        /* 颜色 */
         margin-right: 5px;     /* 右外边距 */
         margin-top: 2px;       /* 顶部外边距 */
-
+        font-size: 14px;
         /* 展开/收缩图标 */
         &.el-icon-caret-bottom {
           cursor: pointer;      /* 鼠标指针 */
