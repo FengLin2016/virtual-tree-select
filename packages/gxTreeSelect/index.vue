@@ -229,7 +229,9 @@ export default {
   // 组件挂载后的生命周期钩子
   mounted() {
     // 设置弹出层宽度（比触发区域宽10px）
-    this.popoverWidth = this.$refs.xz_content.clientWidth + 10;
+    const minWidth = this.$refs.xz_content.clientWidth + 10
+    this.popoverWidth = minWidth > 370 ? minWidth : 370
+
     // 添加全局点击事件监听，用于点击外部关闭下拉框
     document.addEventListener("click", this.handleClickOutside);
   },
@@ -481,7 +483,7 @@ export default {
 .list-popover-ay {
   min-height: 100px;               /* 最小高度 */
   max-height: 400px;               /* 最大高度 */
-  min-width: 150px;                /* 最小宽度 */
+  min-width: 360px;                /* 最小宽度 */
   display: flex;                   /* 弹性布局，左右分栏 */
   position: relative;              /* 相对定位 */
 
