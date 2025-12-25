@@ -51,7 +51,7 @@
         <!-- 多选模式：显示选中项标签 -->
         <span v-if="$attrs.multiple && selectedArr.length">
           <!-- 第一个选中项标签，最多显示4个字符 -->
-          <el-tag closable @close="closeTag(0)"
+          <el-tag closable :title="selectedArr.map(item => item[$attrs.props.label]).join('；')" @close="closeTag(0)"
             >{{ selectedArr[0][$attrs.props.label].substr(0, 4) }}
             {{
               selectedArr[0][$attrs.props.label].length > 4 ? "..." : ""
@@ -63,10 +63,9 @@
           >
         </span>
         <!-- 单选模式：显示选中项文本，最多显示12个字符 -->
-        <span class="single" v-else-if="selectedArr.length"
-          >{{ selectedArr[0][$attrs.props.label].substr(0, 12) }}
-          {{
-            selectedArr[0][$attrs.props.label].length > 12 ? "..." : ""
+        <span class="single" :title="selectedArr[0][$attrs.props.label]" v-else-if="selectedArr.length"
+          >{{
+            selectedArr[0][$attrs.props.label]
           }}</span
         >
         <!-- 默认占位文本 -->
@@ -441,7 +440,8 @@ export default {
       flex: 1;                      /* 占据剩余空间 */
       overflow: hidden;              /* 隐藏溢出内容 */
       color: #879bc1;               /* 占位文本颜色 */
-
+      text-overflow: ellipsis;
+      white-space: nowrap;
       /* 单选模式文本样式 */
       &.single {
         color: #4f5e7b;             /* 选中项文本颜色 */
