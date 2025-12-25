@@ -46,7 +46,7 @@
         class="xz"
         ref="xz_content"
         slot="reference"
-        @click.stop="isShowSelect = !isShowSelect"
+        @click.stop="toggleSelect"
       >
         <!-- 多选模式：显示选中项标签 -->
         <span v-if="$attrs.multiple && selectedArr.length">
@@ -83,7 +83,7 @@
           class="search"
           size="small"
           style="display: none"
-          :value="selectedArr"
+          :value="selectedArr[0]"
           placeholder="请选择"
         />
       </div>
@@ -242,6 +242,13 @@ export default {
   },
   // 组件方法
   methods: {
+    toggleSelect() {
+      this.isShowSelect = !this.isShowSelect
+      try {
+        this.$refs.virtualTree._wheelFn();
+      } catch (error) {
+      }
+    },
     /**
      * 将扁平数组转换为树形结构数据
      * @param {Array} data - 扁平化的原始数据
@@ -324,6 +331,10 @@ export default {
       this._initSelectIds()
       // 触发查询关系单位事件，让父组件加载对应省份的数据
       this.$emit('queryGxdw', dwbm)
+      try {
+        this.$refs.virtualTree.$refs.list.scrollTop = 0;
+      } catch (error) {
+      }
     },
 
     /**
@@ -331,6 +342,7 @@ export default {
      */
     closeLoading() {
       this.loading = false
+
     },
 
     /**
