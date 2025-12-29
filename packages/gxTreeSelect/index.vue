@@ -46,7 +46,7 @@
         class="xz"
         ref="xz_content"
         slot="reference"
-        @click.stop="toggleSelect"
+        @click="toggleSelect"
       >
         <!-- 多选模式：显示选中项标签 -->
         <span v-if="$attrs.multiple && selectedArr.length">

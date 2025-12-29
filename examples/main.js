@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import App from './App1.vue'
+import App from './App.vue'
 import element from 'element-ui';
 import 'element-ui/lib/theme-chalk/icon.css';
 // 导入组件库

@@ -264,13 +264,15 @@ export default {
     },
     // 设置选中节点
     setCheckedKeys(vals, type) {
+      const checkArr = new Set(vals)
       for (let index = 0; index < this.listData.length; index++) {
         const item = this.listData[index];
         item.checked = false;
-        if (vals.includes(item[this.nodeKey])) {
-          this._changeBox(item, type);
+        if (checkArr.has(item[this.nodeKey])) {
+          item.checked = true;
         }
       }
+      this._emitChange('CHANGE')
     },
     // 清空
     clear() {
@@ -287,6 +289,8 @@ export default {
     },
     _emitChange(type) {
       this.key = Math.random();
+      // 只要人为点击过 就取消赋值默认值回调
+      this.backFn = null
       if (this.multiple) {
         this.$emit(
           "model",
@@ -340,7 +344,7 @@ export default {
       // 2. 更新所有父节点状态（向上传播）
       this._updateParentStatus(item);
       this._nodeClick(item, type);
-      this.key = Math.random();
+      // this.key = Math.random();
     },
     /**
      * 更新所有子节点状态（向下传播）
@@ -518,10 +522,13 @@ export default {
     },
     // 选中默认
     setSelectedId() {
+      // 设置的值 可能是异步的
       if(!this.selectedId || !this.selectedId.length) {
         this.backFn = this.setSelectedId
         return
       }
+      // 执行一次后直接清空
+      this.backFn = null
       // 如果是单选
       let selectedIdArr = this.selectedId
       if(!Array.isArray(selectedIdArr)) {
@@ -572,7 +579,6 @@ export default {
     selectedId(v, oldv) {
       if(this.backFn) {
         this.backFn();
-        this.backFn = null
       }
     },
     searchText(v) {
