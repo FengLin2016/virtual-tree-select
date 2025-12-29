@@ -1,11 +1,28 @@
 <template>
   <div class="vtree">
-    <gxTreeSelect
+    <virtualTreeSelect
       ref="tree"
       v-model="input"
       :data="totalList"
       node-key="nodeid"
       showAllSelection
+      remoteSearch
+      @remoteSearch="search"
+      :multiple="true"
+      :props="{
+        children: 'children',
+        label: 'nodetext',
+      }"
+    />
+
+    <virtualTreeSelect
+      ref="tree"
+      v-model="input"
+      :data="totalList"
+      node-key="nodeid"
+      showAllSelection
+      remoteSearch
+      @remoteSearch="search"
       :multiple="true"
       :props="{
         children: 'children',
@@ -28,7 +45,7 @@ export default {
   data() {
     return {
       totalList: [],
-      input: "",
+      input: [],
     };
   },
   watch: {},
@@ -45,10 +62,21 @@ export default {
           "pnodeid",
           ""
         ));
+        setTimeout(() => {
+          this.input=["b0a660bafe0cad2d7c36810d94438c68/34c9d55cef021fe90bbd4ebbd60d6a5a", "b0a660bafe0cad2d7c36810d94438c68/34c9d55cef021fe90bbd4ebbd60d6a5a/301c1eb2d8b24cb59c726adf629c2578" ]
+        }, 3000)
 
       });
   },
   methods: {
+    search() {
+      setTimeout(() => {
+        this.totalList = [{
+          nodeid: 1,
+          nodetext: 2
+        }]
+      },1000)
+    },
     getTreeData(data, id, pid, pvalue, defaultChild = []) {
       if (defaultChild === "undefined") defaultChild = undefined;
       const _data = {};

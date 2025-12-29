@@ -30,12 +30,17 @@
         class="xz"
         ref="xz_content"
         slot="reference"
-        @click="isShowSelect = !isShowSelect"
+        @click="toggleSelect"
       >
         <!-- 多选模式：显示选中项标签 -->
         <span v-if="$attrs.multiple && selectedArr.length">
           <!-- 第一个选中项标签，最多显示4个字符 -->
-          <el-tag closable @close="closeTag(0)"
+          <el-tag
+            closable
+            :title="
+              selectedArr.map((item) => item[$attrs.props.label]).join('；')
+            "
+            @close="closeTag(0)"
             >{{ selectedArr[0][$attrs.props.label].substr(0, 4) }}
             {{
               selectedArr[0][$attrs.props.label].length > 4 ? "..." : ""
@@ -47,16 +52,20 @@
           >
         </span>
         <!-- 单选模式：显示选中项文本，最多显示12个字符 -->
-        <span class="single" v-else-if="selectedArr.length"
-          >{{ selectedArr[0][$attrs.props.label].substr(0, 12) }}
-          {{
-            selectedArr[0][$attrs.props.label].length > 12 ? "..." : ""
-          }}</span
+        <span
+          class="single"
+          :title="selectedArr[0][$attrs.props.label]"
+          v-else-if="selectedArr.length"
+          >{{ selectedArr[0][$attrs.props.label] }}</span
         >
         <!-- 默认占位文本 -->
         <span v-else>请选择</span>
         <!-- 清空按钮（仅多选模式显示） -->
-        <i v-if="$attrs.multiple && selectedArr.length && clearable" @click.stop="clear" class="el-icon-circle-close"></i>
+        <i
+          v-if="$attrs.multiple && selectedArr.length && clearable"
+          @click.stop="clear"
+          class="el-icon-circle-close"
+        ></i>
         <!-- 下拉箭头图标 -->
         <i class="el-icon-arrow-down"></i>
       </div>
@@ -65,7 +74,10 @@
         <!-- 操作栏：全选、搜索、远程检索 -->
         <div class="btn">
           <!-- 全选复选框（仅多选模式显示） -->
-          <el-checkbox v-model="allChecked" @change="allChange" v-if="$attrs.multiple && showAllSelection"
+          <el-checkbox
+            v-model="allChecked"
+            @change="allChange"
+            v-if="$attrs.multiple && showAllSelection"
             >全选</el-checkbox
           >
           <!-- 搜索输入框 -->
@@ -77,38 +89,41 @@
           />
           <!-- 远程检索按钮（可选功能） -->
           <div class="an" v-if="remoteSearch">
-            <el-button @click="remoteSearchFunc" type="primary" icon="el-icon-search" size="small"
-              >{{remoteSearchText}}</el-button
+            <el-button
+              @click="remoteSearchFunc"
+              type="primary"
+              icon="el-icon-search"
+              size="small"
+              >{{ remoteSearchText }}</el-button
             >
           </div>
         </div>
         <!-- 虚拟滚动列表容器 -->
-        <virtualTree ref="virtualTree" v-model="selectedIds"  v-bind="$attrs"/>
+        <virtualTree ref="virtualTree" @change="change" v-bind="$attrs" />
       </div>
     </el-popover>
   </div>
 </template>
 
 <script>
-import { virtualTree } from "virtual-tree-scroll";
+import virtualTree from "../virtualTree/index.vue";
 export default {
   name: "virtualTreeSelect",
   components: {
-    virtualTree
+    virtualTree,
   },
   data() {
     return {
       allChecked: false,
-      searchText:'',
+      searchText: "",
       selectedArr: [],
-      selectedIds: '',
       popoverWidth: 150, // 弹出层宽度
       isShowSelect: false, // 是否显示下拉框
     };
   },
   model: {
     prop: "selectedId",
-    event: "change",
+    event: "changeModel",
   },
   props: {
     showAllSelection: {
@@ -129,8 +144,7 @@ export default {
     },
   },
   created() {},
-  computed: {
-  },
+  computed: {},
   mounted() {
     this.popoverWidth = this.$refs.xz_content.clientWidth + 10;
     document.addEventListener("click", this.handleClickOutside);
@@ -139,12 +153,18 @@ export default {
     document.removeEventListener("click", this.handleClickOutside);
   },
   methods: {
+    toggleSelect() {
+      this.isShowSelect = !this.isShowSelect;
+      try {
+        this.$refs.virtualTree._wheelFn();
+      } catch (error) {}
+    },
     remoteSearchFunc() {
-      this.$emit("remoteSearch");
+      this.$emit("remoteSearch", this.searchText);
     },
     // 返回选中节点
     getCurrentNode() {
-      return this.selectedArr;
+      return this.selectedArr.map(item => item.data);
     },
     handleClickOutside(e) {
       if (this.$refs.xz_content && !this.$refs.xz_content.contains(e.target)) {
@@ -152,39 +172,42 @@ export default {
       }
     },
     closeTag(idx) {
-      this.selectedArr[idx].checked = false;
+      this.$refs.virtualTree._changeBox(this.selectedArr[idx], "CHANGE");
     },
     // 全选
     allChange(value) {
-      this.$refs.virtualTree.allChange(value)
+      this.$refs.virtualTree.allChange(value);
     },
     // 清空
     clear() {
-      this.allChecked = false
-      this.$refs.virtualTree.allChange(false)
+      this.allChecked = false;
+      this.$refs.virtualTree.allChange(false);
     },
-
+    // 修改changeModel
+    change(value, data) {
+      this.selectedArr = this.$refs.virtualTree.selectedArr;
+      this.$emit("changeModel", value);
+      this.$emit("change", value, data);
+    },
   },
   watch: {
-    selectedIds() {
-      this.selectedArr = this.$refs.virtualTree.selectedArr
-    },
     searchText(v) {
-      this.$refs.virtualTree.filter(v)
-    }
+      this.$refs.virtualTree.filter(v);
+    },
   },
 };
 </script>
 
 <style scoped lang="scss">
 .virtualSelect {
-  border: 1px solid #a9c4df;
+  // border: 1px solid #a9c4df;
   background: #fff;
   height: 34px;
   line-height: 34px;
   border-radius: 3px;
   padding: 0 10px;
   outline: none;
+  border: 1px solid #a9c4df;
   cursor: pointer;
   user-select: none;
   .xz {
@@ -203,16 +226,18 @@ export default {
       height: 24px;
       font-size: 16px;
       color: #4084f0;
+      background-color: #d7e5f9;
       margin-top: 3px;
+      border: 1px solid #a9c4df;
     }
     i {
       width: 20px;
       line-height: 34px;
-      &.el-icon-circle-close{
+      &.el-icon-circle-close {
         display: none;
       }
     }
-    &:hover i.el-icon-circle-close{
+    &:hover i.el-icon-circle-close {
       display: block;
     }
   }
@@ -241,10 +266,26 @@ export default {
     .search {
       padding: 0 10px;
       font-size: 14px;
+      input {
+        height: 30px;
+        line-height: 28px;
+        border: 0;
+        border-bottom: 1px solid #a9c4df;
+        outline: none;
+      }
     }
     .an {
       position: relative;
       top: -1px;
+      .el-button {
+        background: #ebf4fe !important;
+        border: 1px solid #a9c4df !important;
+        color: #5e7bad !important;
+        font-size: 14px;
+        height: 30px;
+        line-height: 28px;
+        padding: 0 10px !important;
+      }
     }
   }
   ul {

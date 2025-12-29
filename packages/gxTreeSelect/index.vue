@@ -88,7 +88,7 @@
         />
       </div>
           <!-- 下拉列表容器：左右分栏布局 -->
-      <div class="list-popover-ay" v-loading="loading">
+      <div class="list-popover-ay" :style="'min-width: ' + minWidth + 'px'" v-loading="loading">
         <!-- 左侧：省份选择列表 -->
         <div class="left">
           <ul>
@@ -96,7 +96,7 @@
             <li
               :title="item.dwqc"
               @click.stop="selectProvince(item.dm)"
-              v-for="(item, idx) in provinceArr"
+              v-for="(item, idx) in provinces"
               :key="item.dm"
               :class="{atthis: selectDwbm == item.dm}"
             >
@@ -135,8 +135,142 @@
 
 <script>
 // 导入虚拟滚动树形组件
-import { virtualTree } from "virtual-tree-scroll";
-
+import virtualTree  from "../virtualTree/index.vue";
+const provinceArr = [
+  {
+      "dm": "100000",
+      "mc": "最高检",
+  },
+  {
+      "dm": "110000",
+      "mc": "北京",
+  },
+  {
+      "dm": "120000",
+      "mc": "天津",
+  },
+  {
+      "dm": "130000",
+      "mc": "河北",
+  },
+  {
+      "dm": "140000",
+      "mc": "山西",
+  },
+  {
+      "dm": "150000",
+      "mc": "内蒙古",
+  },
+  {
+      "dm": "210000",
+      "mc": "辽宁",
+  },
+  {
+      "dm": "220000",
+      "mc": "吉林",
+  },
+  {
+      "dm": "230000",
+      "mc": "黑龙江"
+  },
+  {
+      "dm": "310000",
+      "mc": "上海",
+  },
+  {
+      "dm": "320000",
+      "mc": "江苏",
+  },
+  {
+      "dm": "330000",
+      "mc": "浙江",
+  },
+  {
+      "dm": "340000",
+      "mc": "安徽",
+  },
+  {
+      "dm": "350000",
+      "mc": "福建",
+  },
+  {
+      "dm": "360000",
+      "mc": "江西",
+  },
+  {
+      "dm": "370000",
+      "mc": "山东",
+  },
+  {
+      "dm": "410000",
+      "mc": "河南",
+  },
+  {
+      "dm": "420000",
+      "mc": "湖北",
+  },
+  {
+      "dm": "430000",
+      "mc": "湖南",
+  },
+  {
+      "dm": "440000",
+      "mc": "广东",
+  },
+  {
+      "dm": "450000",
+      "mc": "广西",
+  },
+  {
+      "dm": "460000",
+      "mc": "海南",
+  },
+  {
+      "dm": "500000",
+      "mc": "重庆",
+  },
+  {
+      "dm": "510000",
+      "mc": "四川",
+  },
+  {
+      "dm": "520000",
+      "mc": "贵州",
+  },
+  {
+      "dm": "530000",
+      "mc": "云南",
+  },
+  {
+      "dm": "540000",
+      "mc": "西藏",
+  },
+  {
+      "dm": "610000",
+      "mc": "陕西",
+  },
+  {
+      "dm": "620000",
+      "mc": "甘肃",
+  },
+  {
+      "dm": "630000",
+      "mc": "青海",
+  },
+  {
+      "dm": "640000",
+      "mc": "宁夏",
+  },
+  {
+      "dm": "650000",
+      "fdm": "100000",
+      "mc": "新疆",
+  },
+  {
+      "dm": "660000",
+      "mc": "新疆兵团",
+  }
+]
 export default {
   name: "gxTreeSelect",
   components: {
@@ -162,6 +296,10 @@ export default {
 
   // 组件属性定义
   props: {
+    minWidth: {
+      type: Number,
+      default: 490
+    },
     // 是否显示全选按钮
     showAllSelection: {
       type: Boolean,
@@ -187,10 +325,10 @@ export default {
       type: String,
       default: "",
     },
-    // 数据源对象，包含省份列表和关系单位列表
+    // 数据源对象，关系单位列表
     data: {
-      type: Object,
-      default: () => ({})
+      type: Array,
+      default: []
     },
     // 已选中的ID（支持字符串或数组）
     selectedId: {
@@ -207,13 +345,22 @@ export default {
   // 计算属性
   computed: {
     // 获取省份列表数据
-    provinceArr() {
-      return this.data.zzhgxxList || []
+    provinces() {
+      let obj = {}
+      const arr = provinceArr.filter(item => {
+        if(item.dm !== (this.dwbm + '0000')) {
+          return true
+        } else {
+          obj = item
+        }
+      })
+      arr.unshift({dm: this.dwbm, mc: obj.mc || '本省'})
+      return  arr
     },
 
     // 将扁平的关系单位数据转换为树形结构
     gxdwxxList() {
-      return this._getTreeData(this.data.gxdwxxList || [], 'dm','fdm', '-1')
+      return this._getTreeData(this.data, 'dm','fdm', '-1')
     },
 
     // 获取所有选中的节点数据（合并所有省份的选中项）
@@ -495,7 +642,7 @@ export default {
 .list-popover-ay {
   min-height: 100px;               /* 最小高度 */
   max-height: 400px;               /* 最大高度 */
-  min-width: 360px;                /* 最小宽度 */
+  min-width: 490px;                /* 最小宽度 */
   display: flex;                   /* 弹性布局，左右分栏 */
   position: relative;              /* 相对定位 */
 
