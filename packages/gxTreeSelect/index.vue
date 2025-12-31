@@ -273,6 +273,7 @@ const provinceArr = [
 ]
 export default {
   name: "gxTreeSelect",
+  inheritAttrs: false,
   components: {
     virtualTree,
   },

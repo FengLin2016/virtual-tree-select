@@ -133,7 +133,7 @@ function treeToListDFS(
 
 export default {
   name: "virtualTree",
-
+  inheritAttrs: false,
   data() {
     return {
       popoverWidth: 150, // 弹出层宽度

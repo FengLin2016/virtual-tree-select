@@ -109,6 +109,7 @@
 import virtualTree from "../virtualTree/index.vue";
 export default {
   name: "virtualTreeSelect",
+  inheritAttrs: false,
   components: {
     virtualTree,
   },
