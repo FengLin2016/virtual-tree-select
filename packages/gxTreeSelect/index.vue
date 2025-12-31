@@ -143,19 +143,19 @@ const provinceArr = [
   },
   {
       "dm": "110000",
-      "mc": "北京",
+      "mc": "北京市",
   },
   {
       "dm": "120000",
-      "mc": "天津",
+      "mc": "天津市",
   },
   {
       "dm": "130000",
-      "mc": "河北",
+      "mc": "河北省",
   },
   {
       "dm": "140000",
-      "mc": "山西",
+      "mc": "山西省",
   },
   {
       "dm": "150000",
@@ -163,11 +163,11 @@ const provinceArr = [
   },
   {
       "dm": "210000",
-      "mc": "辽宁",
+      "mc": "辽宁省",
   },
   {
       "dm": "220000",
-      "mc": "吉林",
+      "mc": "吉林省",
   },
   {
       "dm": "230000",
@@ -175,71 +175,71 @@ const provinceArr = [
   },
   {
       "dm": "310000",
-      "mc": "上海",
+      "mc": "上海市",
   },
   {
       "dm": "320000",
-      "mc": "江苏",
+      "mc": "江苏省",
   },
   {
       "dm": "330000",
-      "mc": "浙江",
+      "mc": "浙江省",
   },
   {
       "dm": "340000",
-      "mc": "安徽",
+      "mc": "安徽省",
   },
   {
       "dm": "350000",
-      "mc": "福建",
+      "mc": "福建省",
   },
   {
       "dm": "360000",
-      "mc": "江西",
+      "mc": "江西省",
   },
   {
       "dm": "370000",
-      "mc": "山东",
+      "mc": "山东省",
   },
   {
       "dm": "410000",
-      "mc": "河南",
+      "mc": "河南省",
   },
   {
       "dm": "420000",
-      "mc": "湖北",
+      "mc": "湖北省",
   },
   {
       "dm": "430000",
-      "mc": "湖南",
+      "mc": "湖南省",
   },
   {
       "dm": "440000",
-      "mc": "广东",
+      "mc": "广东省",
   },
   {
       "dm": "450000",
-      "mc": "广西",
+      "mc": "广西省",
   },
   {
       "dm": "460000",
-      "mc": "海南",
+      "mc": "海南省",
   },
   {
       "dm": "500000",
-      "mc": "重庆",
+      "mc": "重庆市",
   },
   {
       "dm": "510000",
-      "mc": "四川",
+      "mc": "四川省",
   },
   {
       "dm": "520000",
-      "mc": "贵州",
+      "mc": "贵州省",
   },
   {
       "dm": "530000",
-      "mc": "云南",
+      "mc": "云南省",
   },
   {
       "dm": "540000",
@@ -247,19 +247,19 @@ const provinceArr = [
   },
   {
       "dm": "610000",
-      "mc": "陕西",
+      "mc": "陕西省",
   },
   {
       "dm": "620000",
-      "mc": "甘肃",
+      "mc": "甘肃省",
   },
   {
       "dm": "630000",
-      "mc": "青海",
+      "mc": "青海市",
   },
   {
       "dm": "640000",
-      "mc": "宁夏",
+      "mc": "宁夏市",
   },
   {
       "dm": "650000",
@@ -340,22 +340,25 @@ export default {
   // 组件创建时初始化
   created() {
     // 设置默认选中的省份代码
-    this.selectDwbm = this.dwbm.substring(0, 2) + '0000'
+    this.selectDwbm = this.unitDwbm
   },
 
   // 计算属性
   computed: {
+    unitDwbm() {
+      return this.dwbm.substring(0, 2) + '0000'
+    },
     // 获取省份列表数据
     provinces() {
       let obj = {}
       const arr = provinceArr.filter(item => {
-        if(item.dm !== (this.dwbm + '0000')) {
+        if(item.dm !== this.unitDwbm) {
           return true
         } else {
           obj = item
         }
       })
-      arr.unshift({dm: this.dwbm, mc: obj.mc || '本省'})
+      arr.unshift({dm: this.unitDwbm, mc: obj.mc || '本省'})
       return  arr
     },
 
@@ -649,7 +652,7 @@ export default {
 
   /* 左侧省份列表面板 */
   .left {
-    width: 130px;                 /* 固定宽度 */
+    width: 123px;                 /* 固定宽度 */
     border-right: 1px solid #a9c4df;  /* 右边框分隔线 */
     overflow: auto;                /* 内容溢出时滚动 */
 
