@@ -285,7 +285,7 @@ export default {
       selectedMap: {},                   // 分省份存储选中项的映射表
       selectedIdsTree: '',              // 当前省份的选中ID集合
       searchText: "",                    // 搜索关键字
-      popoverWidth: 150,                // 弹出层宽度
+      popoverWidth: 490,                // 弹出层宽度
       isShowSelect: false,               // 是否显示下拉框
     };
   },
@@ -379,8 +379,8 @@ export default {
   // 组件挂载后的生命周期钩子
   mounted() {
     // 设置弹出层宽度（比触发区域宽10px）
-    const minWidth = this.$refs.xz_content.clientWidth + 10
-    this.popoverWidth = minWidth > 370 ? minWidth : 370
+    const minWidth = this.$refs.xz_content.clientWidth
+    this.popoverWidth = minWidth > 490 ? minWidth : 490 + 10
     this.virtualTree = this.$refs.virtualTree
     // 添加全局点击事件监听，用于点击外部关闭下拉框
     document.addEventListener("click", this.handleClickOutside);
@@ -834,6 +834,7 @@ export default {
     }
   }
 }
+
 
 /* 弹出层样式 */
 .treeSelect_v_popover[x-placement^="bottom"] {
