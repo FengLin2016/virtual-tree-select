@@ -381,7 +381,7 @@ export default {
     // 设置弹出层宽度（比触发区域宽10px）
     const minWidth = this.$refs.xz_content.clientWidth + 10
     this.popoverWidth = minWidth > 370 ? minWidth : 370
-
+    this.virtualTree = this.$refs.virtualTree
     // 添加全局点击事件监听，用于点击外部关闭下拉框
     document.addEventListener("click", this.handleClickOutside);
   },

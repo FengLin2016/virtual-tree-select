@@ -6,6 +6,7 @@
       :data="totalList"
       :dwbm="'770000'"
       @queryGxdw="queryGxdw"
+      :default-expanded-keys="defaultExpandedKeys"
       node-key="dm"
       showAllSelection
       :multiple="true"
@@ -31,6 +32,7 @@ export default {
     return {
       totalList: [],
       input: [],
+      defaultExpandedKeys: []
     };
   },
   watch: {},
@@ -66,6 +68,7 @@ export default {
         )
         .then((res) => {
           this.totalList = res.data.data.objects;
+          this.defaultExpandedKeys = this.totalList.map(item => item.dm)
           this.$refs.tree.closeLoading();
         });
     },

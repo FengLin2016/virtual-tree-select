@@ -42,7 +42,7 @@ export default {
         "http://192.168.9.202:30001/ysj-service/api/gxdwdm/queryBsgxdwzzjg",
         {
           dlrdwbm: "980000",
-          dwbm: "120000",
+          dwbm: "980000",
           sfjzsjcjg: true
         }
       )
@@ -50,6 +50,7 @@ export default {
         this.totalList = Object.freeze(
           this.getTreeData(res.data.data.gxdwxxList,'dm','fdm','-1')
         );
+        this.defaultExpandedKeys = this.totalList.map(item => item.dm)
       });
   },
   methods: {

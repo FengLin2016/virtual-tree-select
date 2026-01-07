@@ -103,10 +103,13 @@ function treeToListDFS(
    */
   const traverse = (node, currentLevel, pNodeId = -1) => {
     // 创建包含扩展属性的节点对象（不修改原对象）
-    let collapse = !defaultExpandAll
-    if(collapse && _defaultExpandedKeys.has(node[nodeKey])) {
-      levelSet.add(currentLevel + 1)  // 下一级展示出来
+    let collapse = true
+    // 全部展开
+    if(defaultExpandAll) {
       collapse = false
+    } else if(_defaultExpandedKeys.has(node[nodeKey])) {
+      collapse = false
+      levelSet.add(currentLevel + 1)  // 下一级展示出来
     }
     const nodeWithLevel = Object.seal({
       data: node,
@@ -116,7 +119,7 @@ function treeToListDFS(
       collapse, // 是否收缩，默认收缩状态
       isIndeterminate: false,
       checked: false, // 是否选中
-      hide: currentLevel != 0 ? (!collapse || !levelSet.has(currentLevel)) : false, // 是否隐藏（非根节点在非全部展开时隐藏）
+      hide: (currentLevel != 0 || collapse) ? (!levelSet.has(currentLevel)) : false, // 是否隐藏（非根节点在非全部展开时隐藏）
       children: !!(node[childrenKey] && node[childrenKey].length), // 是否有子节点
       idx: result.length, // 在扁平数组中的索引
       fatherId: pNodeId, // 父节点ID
