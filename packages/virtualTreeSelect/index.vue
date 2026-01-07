@@ -149,6 +149,7 @@ export default {
   mounted() {
     this.popoverWidth = this.$refs.xz_content.clientWidth + 10;
     document.addEventListener("click", this.handleClickOutside);
+    this.virtualTree = this.$refs.virtualTree
   },
   destroyed() {
     document.removeEventListener("click", this.handleClickOutside);
