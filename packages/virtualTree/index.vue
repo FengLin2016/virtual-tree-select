@@ -567,7 +567,7 @@ export default {
       if (v) {
         let ids = {};
         let arr = this.listData.filter(
-          (item) => item[this.props.label].indexOf(this.searchText) > -1
+          (item) => item[this.props.label] && item[this.props.label].indexOf(this.searchText) > -1
         );
         const that = this;
         function deepFn(citem) {
