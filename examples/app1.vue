@@ -1,5 +1,6 @@
 <template>
   <div class="vtree">
+    1{{input}}
     <gxTreeSelect
       ref="tree"
       v-model="input"
@@ -9,7 +10,7 @@
       :default-expanded-keys="defaultExpandedKeys"
       node-key="dm"
       showAllSelection
-      :multiple="true"
+      :multiple="false"
       :props="{
         children: 'children',
         label: 'mc',
@@ -31,20 +32,18 @@ export default {
   data() {
     return {
       totalList: [],
-      input: [],
+      input: '',
       defaultExpandedKeys: []
     };
   },
   watch: {},
   created() {
-    this.$nextTick(() => {
-      // this.$refs.tree.setSelectArr([
-      //   {dm: '1189000000003', mc: '汉东'}
-      // ])
-    });
-
+  this.queryGxdw();
     setTimeout(() => {
-      this.queryGxdw();
+      this.$refs.tree.setSelectArr([{
+            mc: 'aaa',
+            dm: "1411300000002"
+          }])
     }, 3000);
   },
   methods: {
@@ -68,7 +67,7 @@ export default {
         )
         .then((res) => {
           this.totalList = res.data.data.objects;
-          this.defaultExpandedKeys = this.totalList.map(item => item.dm)
+
           this.$refs.tree.closeLoading();
         });
     },

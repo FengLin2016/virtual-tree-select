@@ -119,7 +119,7 @@ function treeToListDFS(
       collapse, // 是否收缩，默认收缩状态
       isIndeterminate: false,
       checked: false, // 是否选中
-      hide: (currentLevel != 0 || collapse) ? (!levelSet.has(currentLevel)) : false, // 是否隐藏（非根节点在非全部展开时隐藏）
+      hide: (currentLevel != 0) ? (collapse?(!levelSet.has(currentLevel)): false) : false, // 是否隐藏（非根节点在非全部展开时隐藏）
       children: !!(node[childrenKey] && node[childrenKey].length), // 是否有子节点
       idx: result.length, // 在扁平数组中的索引
       fatherId: pNodeId, // 父节点ID
@@ -215,7 +215,9 @@ export default {
     },
     defaultExpandedKeys: {
       type: Array,
-      default: []
+      default: () => {
+        return []
+      }
     },
     remoteSearch: {
       type: Boolean,
@@ -235,7 +237,7 @@ export default {
       if (this.filterKey) {
         if (this.searchText) {
           let arr = this.listData.filter(
-            (item) => this.ids[item[this.nodeKey]]
+            (item) => this.ids[item[this.nodeKey]] && !item.hide
           );
           return arr;
         }
@@ -279,14 +281,19 @@ export default {
     // 设置选中节点
     setCheckedKeys(vals, type) {
       const checkArr = new Set(vals)
+      let cs = false
       for (let index = 0; index < this.listData.length; index++) {
         const item = this.listData[index];
         item.checked = false;
         if (checkArr.has(item[this.nodeKey])) {
+          cs = true
           item.checked = true;
         }
       }
-      this._emitChange('CHANGE')
+      // 如果没有找到 就先不更新
+      if(cs) {
+        this._emitChange('CHANGE')
+      }
     },
     // 设置节点
     setExpandKeys(vals, type) {
@@ -348,6 +355,7 @@ export default {
           this.selectedArr[0].checked = false;
         }
         data.checked = true;
+        this.$emit('emitClick')
       }
       this._emitChange(type)
     },

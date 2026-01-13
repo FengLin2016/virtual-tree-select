@@ -72,7 +72,7 @@
         <span v-else>请选择</span>
         <!-- 清空按钮（仅多选模式显示） -->
         <i
-          v-if="$attrs.multiple && selectedArr.length && clearable"
+          v-if="selectedArr.length && clearable"
           @click.stop="clear"
           class="el-icon-circle-close"
         ></i>
@@ -83,7 +83,7 @@
           class="search"
           size="small"
           style="display: none"
-          :value="selectedArr[0]"
+          :value="selectedArr[0] && selectedArr[0].dm"
           placeholder="请选择"
         />
       </div>
@@ -125,6 +125,7 @@
             v-model="selectedIdsTree"
             :data="gxdwxxList"
             @change="selectedIdsTreeChange"
+            @emitClick="isShowSelect = false"
             v-bind="$attrs"
           />
         </div>
@@ -171,7 +172,7 @@ const provinceArr = [
   },
   {
       "dm": "230000",
-      "mc": "黑龙江"
+      "mc": "黑龙江省"
   },
   {
       "dm": "310000",
@@ -219,7 +220,7 @@ const provinceArr = [
   },
   {
       "dm": "450000",
-      "mc": "广西省",
+      "mc": "广西",
   },
   {
       "dm": "460000",
@@ -255,11 +256,11 @@ const provinceArr = [
   },
   {
       "dm": "630000",
-      "mc": "青海市",
+      "mc": "青海省",
   },
   {
       "dm": "640000",
-      "mc": "宁夏市",
+      "mc": "宁夏",
   },
   {
       "dm": "650000",
@@ -384,6 +385,7 @@ export default {
     this.virtualTree = this.$refs.virtualTree
     // 添加全局点击事件监听，用于点击外部关闭下拉框
     document.addEventListener("click", this.handleClickOutside);
+    this._initSelectIds()
   },
 
   // 组件销毁前的生命周期钩子
@@ -433,6 +435,7 @@ export default {
       return inner(root, defaultChild);
     },
 
+
     /**
      * 设置选中项数据
      * 根据节点ID的前两位确定省份，将选中项按省份分组存储
@@ -440,7 +443,6 @@ export default {
      */
     setSelectArr(v) {
       const objMap = {};
-
       // 按省份代码分组（取节点ID前两位+0000作为省份标识）
       v.forEach((item) => {
         const str = item[this.$attrs['node-key']].substr(0, 2) + '0000'
@@ -449,12 +451,11 @@ export default {
         }
         objMap[str].push(item)
       });
-
       this.selectedMap = objMap
       // 初始化当前省份的选中ID
       this._initSelectIds()
+      this._emitFn()
     },
-
     /**
      * 初始化当前省份的选中ID集合
      * 从selectedMap中获取当前省份的选中项ID，设置给selectedIdsTree
@@ -542,11 +543,25 @@ export default {
       // 单选
       if(!this.$attrs['multiple']) {
         this.selectedMap = {}
-        this.isShowSelect = false
       }
       // 将虚拟树组件的选中数组更新到当前省份的映射中 //加载中的时候 不设置
       if(v && this.$refs.virtualTree && !this.loading) {
         this.$set(this.selectedMap, this.selectDwbm, this.$refs.virtualTree.selectedArr)
+      }
+    },
+    // emit 事件
+    _emitFn() {
+      if(!this.$attrs['multiple']) {
+        if(this.selectedArr[0]) {
+          this.$emit("changeModel", this.selectedArr.map(item => item[this.$attrs['node-key']])[0]);
+          this.$emit("change", this.selectedArr[0][this.$attrs['node-key']], this.selectedArr[0].data || this.selectedArr[0]);
+        } else {
+          this.$emit("changeModel", null);
+          this.$emit("change", '', null);
+        }
+      } else {
+        this.$emit("changeModel", this.selectedArr.map(item => item[this.$attrs['node-key']]));
+        this.$emit("change", this.selectedArr.map(item => item[this.$attrs['node-key']]), this.selectedArr.map(item => item.data));
       }
     }
   },
@@ -567,13 +582,7 @@ export default {
      */
     selectedArr(v, old) {
       // 向外触发changeModel事件，传递所有选中节点的ID数组
-      if(!this.$attrs['multiple']) {
-        this.$emit("changeModel", this.selectedArr.map(item => item[this.$attrs['node-key']])[0]);
-        this.$emit("change", this.selectedArr[0][this.$attrs['node-key']], this.selectedArr[0].data);
-      } else {
-        this.$emit("changeModel", this.selectedArr.map(item => item[this.$attrs['node-key']]));
-        this.$emit("change", this.selectedArr.map(item => item[this.$attrs['node-key']]), this.selectedArr.map(item => item.data));
-      }
+      this._emitFn()
     },
   },
 };
@@ -584,7 +593,6 @@ export default {
 /* 主选择器容器样式 */
 .virtualSelect {
   border: 1px solid #a9c4df;        /* 边框颜色 */
-  background: #fff;                  /* 背景色 */
   height: 34px;                     /* 固定高度 */
   line-height: 34px;                /* 行高，垂直居中 */
   border-radius: 3px;               /* 圆角 */
