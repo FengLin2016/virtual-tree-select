@@ -125,7 +125,7 @@
             v-model="selectedIdsTree"
             :data="gxdwxxList"
             @change="selectedIdsTreeChange"
-            @emitClick="isShowSelect = false"
+            @nodeClick="nodeClick"
             v-bind="$attrs"
           />
         </div>
@@ -538,7 +538,10 @@ export default {
       this.allChecked = false;
       this.$refs.virtualTree.allChange(false);
     },
-
+    nodeClick(data) {
+      this.isShowSelect = false
+      this.$emit('nodeClick', data)
+    },
     selectedIdsTreeChange(v) {
       // 单选
       if(!this.$attrs['multiple']) {

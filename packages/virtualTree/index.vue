@@ -355,7 +355,7 @@ export default {
           this.selectedArr[0].checked = false;
         }
         data.checked = true;
-        this.$emit('emitClick')
+        this.$emit('nodeClick', data)
       }
       this._emitChange(type)
     },
